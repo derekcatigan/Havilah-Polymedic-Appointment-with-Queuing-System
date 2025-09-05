@@ -1,0 +1,94 @@
+/* public\assets\css\layout.css */
+body {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    grid-template-rows: 60px 1fr;
+    grid-template-areas:
+        "sidebar nav"
+        "sidebar main";
+}
+
+.nav {
+    grid-area: nav;
+    border-bottom: 1px solid rgb(230, 230, 230);
+    padding: 5px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar {
+    grid-area: sidebar;
+    border-right: 1px solid rgb(230, 230, 230);
+    padding: 5px;
+    background: #ffff;
+    transition: transform 0.3s ease;
+}
+#sidebarToggle {
+    display: none;
+}
+.sidebar ul {
+    width: 100%;
+    margin-top: 4.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.sidebar ul li {
+    width: 100%;
+    padding: 0 0.5rem;
+}
+.sidebar ul li a {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.5rem;
+    border-radius: 3px;
+    transition: ease 0.2s;
+}
+.sidebar ul li a:hover {
+    color: #000000;
+    font-weight: 600;
+    background: rgb(233, 233, 233);
+}
+.link-items.active {
+    color: #000000;
+    font-weight: 500;
+    background: rgb(233, 233, 233);
+}
+
+.main-content {
+    grid-area: main;
+    background: #f8fafc;
+    padding: 10px;
+}
+
+/* Small screens */
+@media (max-width: 768px) {
+    body {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "nav"
+            "main";
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        width: 250px;
+        height: 100%;
+        transform: translateX(-100%);
+        z-index: 1000;
+    }
+    #sidebarToggle {
+        display: block;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+}
