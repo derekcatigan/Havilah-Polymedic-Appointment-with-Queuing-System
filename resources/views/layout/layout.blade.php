@@ -203,9 +203,12 @@
                 $('.sidebar').toggleClass('active');
             });
 
-            $(window).on("load", function () {
+            if (!sessionStorage.getItem("visited")) {
                 $("#loader").fadeOut("slow");
-            });
+                sessionStorage.setItem("visited", "true");
+            } else {
+                $("#loader").hide();
+            }
         });
     </script>
     @yield('script')

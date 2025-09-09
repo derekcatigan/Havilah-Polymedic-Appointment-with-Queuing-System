@@ -20,18 +20,24 @@
 </head>
 
 <body>
+    @yield('content')
+
     <div id="loader" class="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
         <div class="w-12 h-12 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
     </div>
-    @yield('content')
-
 
     <script src="{{ asset('assets/js/jquery-3.7.1.js') }}"></script>
     <script>
         $(document).ready(function () {
-            $(window).on("load", function () {
+            // $(window).on("load", function () {
+            //     $("#loader").fadeOut("slow");
+            // });
+            if (!sessionStorage.getItem("visited")) {
                 $("#loader").fadeOut("slow");
-            });
+                sessionStorage.setItem("visited", "true");
+            } else {
+                $("#loader").hide();
+            }
         });
     </script>
     @yield('script')
