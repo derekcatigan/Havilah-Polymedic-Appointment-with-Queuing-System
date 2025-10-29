@@ -8,6 +8,24 @@
 @section('content')
     @include('partials.header')
 
+    <section class="flex justify-center">
+        @php
+            $ads = \App\Models\Ad::where('status', 'active')
+                ->where('position', 'homepage')
+                ->latest()
+                ->get();
+        @endphp
+
+        @forelse ($ads as $ad)
+            <a href="{{ $ad->link ?? '#' }}" target="_blank" class="block">
+                <img src="{{ asset('storage/' . $ad->image_path) }}" alt="{{ $ad->title ?? 'Advertisement' }}"
+                    class="w-[1000px] h-[280px] object-fill rounded-lg shadow-md border border-gray-300">
+            </a>
+        @empty
+            <p class="text-gray-500">No ads available at the moment.</p>
+        @endforelse
+    </section>
+
     <div class="max-w-5xl mx-auto p-6">
         <h2 class="text-2xl font-bold mb-6">My Appointments</h2>
 
@@ -126,10 +144,10 @@
                     });
 
                     form.replaceWith(`
-                                                                                            <span class="badge badge-error">
-                                                                                                Cancelled
-                                                                                            </span>
-                                                                                        `);
+                                                                                                <span class="badge badge-error">
+                                                                                                    Cancelled
+                                                                                                </span>
+                                                                                            `);
                 },
                 error: function (xhr) {
                     $.toast({
