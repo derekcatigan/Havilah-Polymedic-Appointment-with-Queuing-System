@@ -9,6 +9,7 @@ use App\Http\Controllers\DoctorProfileController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\HomeDoctorController;
 use App\Http\Controllers\ManageAccountController;
+use App\Http\Controllers\ManageADSController;
 use App\Http\Controllers\ManageAppointmentController;
 use App\Http\Controllers\ManageDoctorController;
 use App\Http\Controllers\StaffDashboardController;
@@ -54,6 +55,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/doctor/edit/{id}', [ManageDoctorController::class, 'edit'])->name('edit.doctor');
         Route::put('/admin/doctor/update/{id}', [ManageDoctorController::class, 'update'])->name('update.doctor');
         Route::delete('/admin/doctor/delete/{id}', [ManageDoctorController::class, 'destroy'])->name('delete.doctor');
+
+        // ManageADSController
+        Route::get('/admin/manage-ads', [ManageADSController::class, 'index'])->name('admin.manage.ads');
+        Route::post('/admin/ads', [ManageADSController::class, 'store'])->name('admin.ads.store');
+        Route::delete('/admin/ads/{ad}', [ManageADSController::class, 'destroy'])->name('admin.ads.destroy');
     });
 
     // Doctor Routes

@@ -29,9 +29,9 @@
 
     {{-- Body --}}
     <div class="w-full">
-        <div class="rounded-box border border-base-content/5 bg-base-100">
-            <table class="table">
-                <thead>
+        <div class="rounded-box border border-gray-300 bg-base-100 h-[600px]">
+            <table class="table table-zebra w-full">
+                <thead class="bg-gray-100">
                     <tr>
                         <th class="text-center"></th>
                         <th>Name</th>
@@ -43,8 +43,8 @@
                 </thead>
                 <tbody>
                     @forelse ($doctors as $index => $doctor)
-                        <tr class="font-medium">
-                            <td class="font-semibold">{{ $index + 1 }}</td>
+                        <tr class="font-medium border-b border-b-gray-300">
+                            <td class="font-semibold text-center">{{ $index + 1 }}</td>
                             <td class="flex items-center gap-2">
                                 <div
                                     class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 flex-shrink-0">
@@ -52,21 +52,15 @@
                                 </div>
                                 {{ $doctor->name }}
                             </td>
-                            <td>
-                                {{ $doctor->email }}
-                            </td>
-                            <td>
-                                {{ Str::title($doctor->role->value) }}
-                            </td>
+                            <td>{{ $doctor->email }}</td>
+                            <td>{{ Str::title($doctor->role->value) }}</td>
                             <td>
                                 @if ($doctor->doctor?->status === 'available')
                                     <span class="badge badge-sm badge-success">
                                         {{ Str::title($doctor->doctor->status) }}
                                     </span>
                                 @else
-                                    <span class="badge badge-sm badge-error">
-                                        null
-                                    </span>
+                                    <span class="badge badge-sm badge-error">null</span>
                                 @endif
                             </td>
                             <td>
@@ -111,6 +105,7 @@
                     @endforelse
                 </tbody>
             </table>
+
             <div class="p-5">
                 {{ $doctors->links() }}
             </div>

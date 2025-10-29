@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Havilah Polymedic Personnel Panel')</title>
+    <title>@yield('title', 'Havilah Polymedic Online Appointment Transaction System')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="icon" href="{{ asset('assets/images/logo/logoH.png') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/layout.css') }}">
@@ -36,6 +36,7 @@
             </button>
             <img src="{{ asset('assets/images/logo/logoHV2.png') }}" alt="Havilah Polymedic Logo"
                 class="w-[90px] h-auto object-contain">
+
         </div>
 
         <div>
@@ -78,6 +79,21 @@
                     </a>
                 </li> --}}
 
+                {{-- Patients --}}
+                <li class="list-items">
+                    <a href="{{ route('admin.manage.account') }}"
+                        class="link-items text-sm {{ Request::routeIs('admin.manage.account', 'create.account') ? 'active' : '' }}">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                            </svg>
+                        </span>
+                        Patients
+                    </a>
+                </li>
+
                 {{-- Admin Manage Account Link --}}
                 <li class="list-items">
                     <a href="{{ route('admin.manage.account') }}"
@@ -105,6 +121,21 @@
                             </svg>
                         </span>
                         Manage Doctor
+                    </a>
+                </li>
+
+                {{-- Manage ADS --}}
+                <li class="list-items">
+                    <a href="{{ route('admin.manage.ads') }}"
+                        class="link-items text-sm {{ Request::routeIs('admin.manage.ads') ? 'active' : '' }}">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z" />
+                            </svg>
+                        </span>
+                        Manage ADS
                     </a>
                 </li>
             @endif
@@ -191,7 +222,7 @@
         </ul>
     </aside>
 
-    <main class="main-content">
+    <main class="main-content bg-gray-100">
         @yield('content')
     </main>
 

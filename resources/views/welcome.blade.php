@@ -9,6 +9,25 @@
     @include('partials.header')
 
     <main>
+        {{-- Homepage Ads --}}
+        <section class="flex justify-center">
+            @php
+                $ads = \App\Models\Ad::where('status', 'active')
+                    ->where('position', 'homepage')
+                    ->latest()
+                    ->get();
+            @endphp
+
+            @forelse ($ads as $ad)
+                <a href="{{ $ad->link ?? '#' }}" target="_blank" class="block">
+                    <img src="{{ asset('storage/' . $ad->image_path) }}" alt="{{ $ad->title ?? 'Advertisement' }}"
+                        class="w-[1000px] h-[280px] object-fill rounded-lg shadow-md border border-gray-300">
+                </a>
+            @empty
+                <p class="text-gray-500">No ads available at the moment.</p>
+            @endforelse
+        </section>
+
         <section class="flex justify-center items-center">
             <div class="banner shadow-lg border border-blue-500">
                 <div class="flex-1 flex flex-col p-3 min-w-[200px]">

@@ -29,6 +29,23 @@
 
         <!-- Doctor Cards -->
         <main class="flex-1 p-6">
+            <section class="flex justify-center">
+                @php
+                    $ads = \App\Models\Ad::where('status', 'active')
+                        ->where('position', 'homepage')
+                        ->latest()
+                        ->get();
+                @endphp
+
+                @forelse ($ads as $ad)
+                    <a href="{{ $ad->link ?? '#' }}" target="_blank" class="block">
+                        <img src="{{ asset('storage/' . $ad->image_path) }}" alt="{{ $ad->title ?? 'Advertisement' }}"
+                            class="w-[1000px] h-[280px] object-fill rounded-lg shadow-md border border-gray-300">
+                    </a>
+                @empty
+                    <p class="text-gray-500">No ads available at the moment.</p>
+                @endforelse
+            </section>
             <h1 class="text-lg font-semibold mb-6">Available Doctors</h1>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

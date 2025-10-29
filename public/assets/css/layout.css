@@ -62,7 +62,7 @@ body {
 
 .main-content {
     grid-area: main;
-    background: #f8fafc;
+    /* background: #f8fafc; */
     padding: 10px;
 }
 
