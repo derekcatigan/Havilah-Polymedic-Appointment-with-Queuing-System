@@ -28,9 +28,9 @@
 
     {{-- Body --}}
     <div class="w-full">
-        <div class="rounded-box border border-base-content/5 bg-base-100">
-            <table class="table">
-                <thead>
+        <div class="rounded-box border border-gray-300 bg-base-100 h-[600px]">
+            <table class="table table-zebra w-full">
+                <thead class="bg-gray-100">
                     <tr>
                         <th class="text-center"></th>
                         <th>Name</th>

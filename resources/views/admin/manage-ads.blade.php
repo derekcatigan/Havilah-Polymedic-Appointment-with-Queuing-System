@@ -11,7 +11,7 @@
         @endif
 
         {{-- Create new ad --}}
-        <form action="{{ route('admin.ads.store') }}" method="POST" enctype="multipart/form-data"
+        <form id="createAdForm" action="{{ route('admin.ads.store') }}" method="POST" enctype="multipart/form-data"
             class="border border-gray-300 rounded-lg p-4 mb-6 bg-white shadow-sm">
             @csrf
             <div class="grid grid-cols-2 gap-4">
@@ -49,7 +49,10 @@
             </div>
 
             <div class="mt-4">
-                <button type="submit" class="btn btn-primary">Add Ad</button>
+                <button type="submit" id="createBtn" class="btn btn-sm btn-block btn-primary mt-5">
+                    <span id="buttonText">Add Ad</span>
+                    <span id="spinner" class="loading loading-dots loading-sm hidden"></span>
+                </button>
             </div>
         </form>
 
@@ -110,4 +113,63 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('script')
+    <script>
+        $(document).ready(function () {
+
+            $('#createAdForm').on('submit', function (e) {
+                e.preventDefault();
+
+                let formData = new FormData(this);
+                let $createBtn = $('#createBtn')
+                let $buttonText = $('#buttonText');
+                let $spinner = $('#spinner');
+
+                $createBtn.prop('disabled', true);
+                $buttonText.addClass('hidden');
+                $spinner.removeClass('hidden');
+
+                $.ajax({
+                    method: 'POST',
+                    url: '/admin/ads',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        $.toast({
+                            heading: 'Success',
+                            icon: 'success',
+                            text: response.message,
+                            showHideTransition: 'slide',
+                            stack: 3,
+                            position: 'top-right',
+                        });
+                        window.location.href = "/admin/manage-ads";
+                    },
+                    error: function (xhr) {
+                        let error = "Something went wrong. Please try again later.";
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            error = xhr.responseJSON.message;
+                        }
+                        $.toast({
+                            heading: "Error",
+                            icon: "error",
+                            text: error,
+                            showHideTransition: 'slide',
+                            stack: 3,
+                            position: 'top-right',
+                        });
+                    },
+                    complete: function () {
+                        $createBtn.prop('disabled', false);
+                        $buttonText.removeClass('hidden');
+                        $spinner.addClass('hidden');
+                    }
+                });
+            });
+
+        });
+    </script>
 @endsection

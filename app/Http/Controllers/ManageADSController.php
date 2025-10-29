@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ad;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ManageADSController extends Controller
@@ -25,16 +28,28 @@ class ManageADSController extends Controller
         ]);
 
         $path = $request->file('image')->store('ads', 'public');
+        try {
+            DB::beginTransaction();
 
-        Ad::create([
-            'title' => $request->title,
-            'image_path' => $path,
-            'link' => $request->link,
-            'position' => $request->position,
-            'status' => $request->status,
-        ]);
+            Ad::create([
+                'title' => $request->title,
+                'image_path' => $path,
+                'link' => $request->link,
+                'position' => $request->position,
+                'status' => $request->status,
+            ]);
 
-        return redirect()->back()->with('success', 'Ad created successfully!');
+            DB::commit();
+            return response()->json([
+                'message' => 'Ad created successfully!',
+            ], 201);
+        } catch (Exception $e) {
+            DB::rollBack();
+            Log::error('Failed: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Something went wrong. Please try again later.'
+            ], 500);
+        }
     }
 
     public function destroy(Ad $ad)

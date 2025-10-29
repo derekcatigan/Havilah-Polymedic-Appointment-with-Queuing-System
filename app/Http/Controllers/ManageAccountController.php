@@ -18,7 +18,7 @@ class ManageAccountController extends Controller
     {
         $query = User::query();
 
-        $query->whereIn('role', ['admin', 'staff', 'patient']);
+        $query->whereIn('role', ['admin', 'staff']);
 
         if ($request->has('search') && !empty($request->search)) {
             $search = $request->search;
@@ -28,7 +28,7 @@ class ManageAccountController extends Controller
             });
         }
 
-        $accounts = $query->latest()->paginate(5);
+        $accounts = $query->latest()->paginate(10);
 
         return view('admin.manage-account', compact('accounts'));
     }

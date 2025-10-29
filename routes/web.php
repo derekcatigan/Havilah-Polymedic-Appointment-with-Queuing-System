@@ -12,6 +12,7 @@ use App\Http\Controllers\ManageAccountController;
 use App\Http\Controllers\ManageADSController;
 use App\Http\Controllers\ManageAppointmentController;
 use App\Http\Controllers\ManageDoctorController;
+use App\Http\Controllers\ManagePatientController;
 use App\Http\Controllers\StaffDashboardController;
 use App\Http\Controllers\StaffQueueController;
 use App\Http\Controllers\WalkInController;
@@ -60,6 +61,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/manage-ads', [ManageADSController::class, 'index'])->name('admin.manage.ads');
         Route::post('/admin/ads', [ManageADSController::class, 'store'])->name('admin.ads.store');
         Route::delete('/admin/ads/{ad}', [ManageADSController::class, 'destroy'])->name('admin.ads.destroy');
+
+        // ManagePatientController
+        Route::get('/admin/manage-patient', [ManagePatientController::class, 'index'])->name('admin.manage.patient');
     });
 
     // Doctor Routes

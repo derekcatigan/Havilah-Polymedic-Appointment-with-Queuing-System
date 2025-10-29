@@ -81,8 +81,8 @@
 
                 {{-- Patients --}}
                 <li class="list-items">
-                    <a href="{{ route('admin.manage.account') }}"
-                        class="link-items text-sm {{ Request::routeIs('admin.manage.account', 'create.account') ? 'active' : '' }}">
+                    <a href="{{ route('admin.manage.patient') }}"
+                        class="link-items text-sm {{ Request::routeIs('admin.manage.patient') ? 'active' : '' }}">
                         <span>
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                                 stroke="currentColor" class="size-6">
