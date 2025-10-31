@@ -20,6 +20,8 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
+        'patient_id',
+        'patient_number',
         'name',
         'email',
         'role',
@@ -63,6 +65,11 @@ class User extends Authenticatable
         return $this->hasMany(Appointment::class, 'doctor_user_id');
     }
 
+    public function serviceTypes()
+    {
+        return $this->hasManyThrough(ServiceType::class, Appointment::class, 'patient_user_id', 'id', 'id', 'service_type_id');
+    }
+
     public function appointmentsAsPatient()
     {
         return $this->hasMany(Appointment::class, 'patient_user_id');
@@ -76,5 +83,10 @@ class User extends Authenticatable
     public function queuesAsPatient()
     {
         return $this->hasMany(Queue::class, 'patient_user_id');
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(DoctorSchedule::class, 'doctor_user_id');
     }
 }

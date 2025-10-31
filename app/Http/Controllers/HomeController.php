@@ -2,12 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ad;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        return view('welcome');
+        $homepageAds = Ad::where('status', 'active')
+            ->where('position', 'homepage')
+            ->latest()
+            ->get();
+
+        return view('welcome', compact('homepageAds'));
     }
 }

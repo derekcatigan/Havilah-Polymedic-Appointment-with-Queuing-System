@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DoctorAppointmentController;
 use App\Http\Controllers\DoctorDashboardController;
 use App\Http\Controllers\DoctorProfileController;
+use App\Http\Controllers\DoctorScheduleController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\HomeDoctorController;
 use App\Http\Controllers\ManageAccountController;
@@ -125,6 +126,7 @@ Route::middleware('auth')->group(function () {
 
     // AppointmentController Routes
     Route::post('/book/appointment/{doctorId}', [AppointmentController::class, 'book'])->name('book.appointment');
+    Route::get('/doctor/{id}/available-slots', [DoctorScheduleController::class, 'getAvailableSlots']);
     Route::delete('/cancel/appointment/{id}', [AppointmentController::class, 'cancel'])
         ->name('cancel.appointment');
 

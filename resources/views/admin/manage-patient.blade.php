@@ -22,7 +22,7 @@
         </div>
 
         <div>
-            <a href="{{ route('create.account') }}" class="btn btn-sm btn-primary">Create account</a>
+            <a href="#" class="btn btn-sm btn-primary">Add Patients</a>
         </div>
     </div>
 

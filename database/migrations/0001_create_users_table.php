@@ -14,6 +14,8 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('patient_id')->nullable()->unique();
+            $table->string('patient_number')->nullable()->unique();
             $table->string('name');
             $table->string('email')->unique();
             $table->string('role')->default(UserRole::Patient);

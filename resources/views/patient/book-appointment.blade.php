@@ -50,6 +50,13 @@
                             <form id="bookForm" autocomplete="off">
                                 @csrf
                                 <fieldset class="fieldset">
+                                    <legend class="fieldset-legend">Select Schedule</legend>
+                                    <select id="slot" name="slot" class="select w-full" required>
+                                        <option value="">Select a time slot</option>
+                                    </select>
+                                </fieldset>
+
+                                <fieldset class="fieldset mt-3">
                                     <legend class="fieldset-legend">Reason <span class="label text-xs">Optional</span></legend>
                                     <textarea class="w-full textarea" id="reason" name="reason" rows="5"
                                         placeholder="Enter reason here"></textarea>
@@ -68,6 +75,13 @@
                             <form id="bookForm" autocomplete="off">
                                 @csrf
                                 <fieldset class="fieldset">
+                                    <legend class="fieldset-legend">Select Schedule</legend>
+                                    <select id="slot" name="slot" class="select w-full" required>
+                                        <option value="">Select a time slot</option>
+                                    </select>
+                                </fieldset>
+
+                                <fieldset class="fieldset mt-3">
                                     <legend class="fieldset-legend">Reason <span class="label text-xs">Optional</span></legend>
                                     <textarea class="w-full textarea" id="reason" name="reason" rows="5"
                                         placeholder="Enter reason here"></textarea>
@@ -111,18 +125,18 @@
 
             if (status === 'confirmed') {
                 $("#bookForm, #cancelForm").replaceWith(`
-                    <button class="btn btn-block btn-sm btn-success mt-5" disabled>Booked</button>
-                `);
+                                                            <button class="btn btn-block btn-sm btn-success mt-5" disabled>Booked</button>
+                                                        `);
             } else {
                 $("#bookForm, #cancelForm").replaceWith(`
-                    <form id="cancelForm" autocomplete="off">
-                        <input type="hidden" name="_method" value="DELETE">
-                        <button type="submit" id="cancelBtn" class="btn btn-block btn-sm btn-warning mt-5" data-id="${appointmentId}">
-                            <span id="cancelButtonText">Cancel Booking</span>
-                            <span id="cancelSpinner" class="loading loading-dots loading-sm hidden"></span>
-                        </button>
-                    </form>
-                `);
+                                                            <form id="cancelForm" autocomplete="off">
+                                                                <input type="hidden" name="_method" value="DELETE">
+                                                                <button type="submit" id="cancelBtn" class="btn btn-block btn-sm btn-warning mt-5" data-id="${appointmentId}">
+                                                                    <span id="cancelButtonText">Cancel Booking</span>
+                                                                    <span id="cancelSpinner" class="loading loading-dots loading-sm hidden"></span>
+                                                                </button>
+                                                            </form>
+                                                        `);
             }
         }
 
@@ -131,17 +145,17 @@
             currentStatus = '';
 
             $("#cancelForm, #bookForm").replaceWith(`
-                <form id="bookForm" autocomplete="off">
-                    <fieldset class="fieldset">
-                        <legend class="fieldset-legend">Reason <span class="label text-xs">Optional</span></legend>
-                        <textarea class="w-full textarea" id="reason" name="reason" rows="5" placeholder="Enter reason here"></textarea>
-                    </fieldset>
-                    <button type="submit" id="bookBtn" class="btn btn-block btn-sm btn-primary mt-5" data-id="${doctorId}">
-                        <span id="buttonText">Book</span>
-                        <span id="spinner" class="loading loading-dots loading-sm hidden"></span>
-                    </button>
-                </form>
-            `);
+                                                        <form id="bookForm" autocomplete="off">
+                                                            <fieldset class="fieldset">
+                                                                <legend class="fieldset-legend">Reason <span class="label text-xs">Optional</span></legend>
+                                                                <textarea class="w-full textarea" id="reason" name="reason" rows="5" placeholder="Enter reason here"></textarea>
+                                                            </fieldset>
+                                                            <button type="submit" id="bookBtn" class="btn btn-block btn-sm btn-primary mt-5" data-id="${doctorId}">
+                                                                <span id="buttonText">Book</span>
+                                                                <span id="spinner" class="loading loading-dots loading-sm hidden"></span>
+                                                            </button>
+                                                        </form>
+                                                    `);
         }
 
         function renderUnavailable() {
@@ -149,27 +163,27 @@
             currentStatus = 'cancelled';
 
             $("#bookForm, #cancelForm").replaceWith(`
-                <button class="btn btn-block btn-sm btn-secondary mt-5" disabled>Doctor Unavailable</button>
-            `);
+                                                        <button class="btn btn-block btn-sm btn-secondary mt-5" disabled>Doctor Unavailable</button>
+                                                    `);
         }
 
         /** ------------ Actions ------------ **/
-        function bookAppointment(formData, btn) {
-            $.post(`/book/appointment/${doctorId}`, formData)
-                .done(res => {
-                    $.toast({ heading: 'Success', icon: 'success', text: res.message, position: 'top-right' });
-                    renderBooked(res.appointment_id, res.status || 'pending');
-                })
-                .fail(xhr => {
-                    const error = xhr.responseJSON?.message || "Booking failed.";
-                    $.toast({ heading: 'Error', icon: 'error', text: error, position: 'top-right' });
-                })
-                .always(() => {
-                    btn.prop("disabled", false);
-                    $("#buttonText").removeClass("hidden");
-                    $("#spinner").addClass("hidden");
-                });
-        }
+        // function bookAppointment(formData, btn) {
+        //     $.post(`/book/appointment/${doctorId}`, formData)
+        //         .done(res => {
+        //             $.toast({ heading: 'Success', icon: 'success', text: res.message, position: 'top-right' });
+        //             renderBooked(res.appointment_id, res.status || 'pending');
+        //         })
+        //         .fail(xhr => {
+        //             const error = xhr.responseJSON?.message || "Booking failed.";
+        //             $.toast({ heading: 'Error', icon: 'error', text: error, position: 'top-right' });
+        //         })
+        //         .always(() => {
+        //             btn.prop("disabled", false);
+        //             $("#buttonText").removeClass("hidden");
+        //             $("#spinner").addClass("hidden");
+        //         });
+        // }
 
         function cancelAppointment(appointmentId, btn, autoCancel = false) {
             $.ajax({ url: `/cancel/appointment/${appointmentId}`, type: "DELETE" })
@@ -196,6 +210,15 @@
                 });
         }
 
+        $.get(`/doctor/${doctorId}/available-slots`, function (slots) {
+            let options = slots.map(slot => {
+                return `<option value="${slot.date} ${slot.start_time}|${slot.end_time}">
+                            ${slot.date} — ${slot.start_time} to ${slot.end_time}
+                        </option>`;
+            }).join('');
+            $("#slot").append(options);
+        });
+
         /** ------------ Event Bindings ------------ **/
         $(document).on("submit", "#bookForm", function (e) {
             e.preventDefault();
@@ -204,8 +227,27 @@
             $("#buttonText").addClass("hidden");
             $("#spinner").removeClass("hidden");
 
-            const formData = $(this).serialize();
-            bookAppointment(formData, btn);
+            const [starts_at, ends_at] = $("#slot").val().split("|");
+            const data = {
+                reason: $("#reason").val(),
+                starts_at,
+                ends_at,
+                _token: "{{ csrf_token() }}"
+            };
+
+            $.post(`/book/appointment/${doctorId}`, data)
+                .done(res => {
+                    $.toast({ heading: 'Success', icon: 'success', text: res.message, position: 'top-right' });
+                    location.reload();
+                })
+                .fail(xhr => {
+                    $.toast({ heading: 'Error', icon: 'error', text: xhr.responseJSON?.message || "Booking failed.", position: 'top-right' });
+                })
+                .always(() => {
+                    btn.prop("disabled", false);
+                    $("#buttonText").removeClass("hidden");
+                    $("#spinner").addClass("hidden");
+                });
         });
 
         $(document).on("submit", "#cancelForm", function (e) {

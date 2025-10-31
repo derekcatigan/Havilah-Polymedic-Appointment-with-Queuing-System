@@ -15,8 +15,10 @@ class AppointmentController extends Controller
 {
     public function book(Request $request, $doctorId)
     {
-        $validate = $request->validate([
-            'reason' => 'nullable|string|max:1000'
+        $validated = $request->validate([
+            'reason' => 'nullable|string|max:1000',
+            'starts_at' => 'required|date_format:Y-m-d H:i',
+            'ends_at' => 'required|date_format:Y-m-d H:i|after:starts_at',
         ]);
 
         $doctor = User::with('doctor')->findOrFail($doctorId);
@@ -28,33 +30,32 @@ class AppointmentController extends Controller
             ], 400);
         }
 
-        try {
-            DB::beginTransaction();
+        // Check if time slot already booked
+        $conflict = Appointment::where('doctor_user_id', $doctorId)
+            ->where(function ($query) use ($validated) {
+                $query->whereBetween('starts_at', [$validated['starts_at'], $validated['ends_at']])
+                    ->orWhereBetween('ends_at', [$validated['starts_at'], $validated['ends_at']]);
+            })
+            ->exists();
 
-            $appointment = Appointment::create([
-                'doctor_user_id' => $doctor->id,
-                'patient_user_id' => $userId,
-                'starts_at' => now('Asia/Manila'),
-                'ends_at' => now('Asia/Manila'),
-                'reason' => $validate['reason'] ?? null,
-            ]);
-
-            DB::commit();
-
+        if ($conflict) {
             return response()->json([
-                'message' => 'Booking doctor successfully!',
-                'appointment_id' => $appointment->id,
-                'status' => $appointment->status,
-                'doctor_status' => $appointment->doctor->status,
-            ], 201);
-        } catch (Exception $e) {
-            DB::rollBack();
-            Log::error('Something went wrong: ' . $e->getMessage());
-
-            return response()->json([
-                'message' => 'Something went wrong. Please try again later.'
-            ], 500);
+                'message' => 'This time slot is already booked. Please choose another one.',
+            ], 409);
         }
+
+        $appointment = Appointment::create([
+            'doctor_user_id' => $doctor->id,
+            'patient_user_id' => $userId,
+            'starts_at' => $validated['starts_at'],
+            'ends_at' => $validated['ends_at'],
+            'reason' => $validated['reason'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => 'Appointment booked successfully!',
+            'appointment_id' => $appointment->id,
+        ]);
     }
 
 

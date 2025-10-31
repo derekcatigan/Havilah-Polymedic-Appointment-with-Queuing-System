@@ -31,7 +31,7 @@ class DoctorAppointmentController extends Controller
 
     public function show(Appointment $appointment)
     {
-        $appointment->load('patient'); // eager load patient
+        $appointment->load('patient');
 
         return view('doctor.doctor-appointment-detail', compact('appointment'));
     }

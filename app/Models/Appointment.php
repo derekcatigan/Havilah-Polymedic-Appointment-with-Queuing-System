@@ -10,8 +10,10 @@ class Appointment extends Model
     protected $fillable = [
         'doctor_user_id',
         'patient_user_id',
+        'service_type_id',
         'starts_at',
         'ends_at',
+        'visit_datetime',
         'status',
         'reason',
         'notes',
@@ -20,6 +22,7 @@ class Appointment extends Model
     protected $casts = [
         'starts_at' => 'datetime',
         'ends_at'   => 'datetime',
+        'visit_datetime' => 'datetime',
     ];
 
     public function doctor()
@@ -35,5 +38,10 @@ class Appointment extends Model
     public function queue()
     {
         return $this->hasOne(Queue::class, 'appointment_id');
+    }
+
+    public function serviceType()
+    {
+        return $this->belongsTo(ServiceType::class, 'service_type_id');
     }
 }
