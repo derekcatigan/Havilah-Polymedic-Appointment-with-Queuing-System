@@ -14,6 +14,7 @@ use App\Http\Controllers\ManageADSController;
 use App\Http\Controllers\ManageAppointmentController;
 use App\Http\Controllers\ManageDoctorController;
 use App\Http\Controllers\ManagePatientController;
+use App\Http\Controllers\MyScheduleController;
 use App\Http\Controllers\StaffDashboardController;
 use App\Http\Controllers\StaffQueueController;
 use App\Http\Controllers\WalkInController;
@@ -80,6 +81,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/doctor/my-appointments', [DoctorAppointmentController::class, 'index'])->name('doctor.appointment');
         Route::get('/doctor/appointments/{appointment}', [DoctorAppointmentController::class, 'show'])
             ->name('doctor.appointments.show');
+
+        // MyScheduleController
+        Route::get('/doctor/my-schedule', [MyScheduleController::class, 'index'])->name('schedule.index');
+        Route::post('/doctor/schedule', [MyScheduleController::class, 'store'])->name('doctor.schedule.store');
+        Route::delete('/doctor/schedule/{schedule}', [MyScheduleController::class, 'destroy'])->name('doctor.schedule.destroy');
     });
 
     // Staff Routes
