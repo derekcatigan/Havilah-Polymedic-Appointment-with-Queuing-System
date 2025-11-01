@@ -75,11 +75,12 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'phone'     => 'required|string|min:11|max:11|unique:users,contact_number',
-            'address'   => 'required|string|max:255',
-            'password' => 'required|min:6|confirmed'
+            'phone' => 'required|string|min:11|max:11|unique:users,contact_number',
+            'address' => 'required|string|max:255',
+            'password' => 'required|min:6|confirmed',
         ]);
 
+        // Check if patient already exists by name + phone
         $exists = User::where('name', Str::title($validated['name']))
             ->where('contact_number', $validated['phone'])
             ->exists();
@@ -93,24 +94,32 @@ class AuthController extends Controller
         DB::beginTransaction();
 
         try {
+            // 🔹 Generate unique patient ID and number
+            $patientId = 'PID-' . strtoupper(Str::random(6)); // Example: PID-8AF3QZ
+            $patientNumber = 'PN-' . str_pad(User::count() + 1, 5, '0', STR_PAD_LEFT); // Example: PN-00023
+
             User::create([
+                'patient_id' => $patientId,
+                'patient_number' => $patientNumber,
                 'name' => Str::title($validated['name']),
                 'email' => $validated['email'],
                 'role' => UserRole::Patient,
                 'contact_number' => $validated['phone'],
                 'address' => Str::title($validated['address']),
-                'password' => Hash::make($validated['password'])
+                'password' => Hash::make($validated['password']),
             ]);
 
             DB::commit();
+
             return response()->json([
-                'message' => 'Account created successfully!'
+                'message' => 'Account created successfully!',
             ], 201);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error("Patient registration failed: " . $e->getMessage());
+
             return response()->json([
-                'message' => 'Something went wrong, please try again later.'
+                'message' => 'Something went wrong, please try again later.',
             ], 500);
         }
     }
