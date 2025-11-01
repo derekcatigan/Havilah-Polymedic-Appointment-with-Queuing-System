@@ -147,19 +147,19 @@
                 let html = '';
                 for (const [day, times] of Object.entries(grouped)) {
                     html += `
-                        <div class="border border-gray-300 rounded-lg p-3 bg-white shadow-sm">
-                            <h3 class="font-semibold text-blue-600 mb-2">${day}</h3>
-                            <div class="flex flex-wrap gap-2">
-                                ${times.map(t => `
-                                    <button type="button"
-                                        class="time-slot border border-blue-300 text-sm px-3 py-1 rounded hover:bg-blue-100 transition"
-                                        data-slot="${t.date} ${t.start_time}|${t.date} ${t.end_time}">
-                                        ${t.start_time} - ${t.end_time}
-                                    </button>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
+                                        <div class="border border-gray-300 rounded-lg p-3 bg-white shadow-sm">
+                                            <h3 class="font-semibold text-blue-600 mb-2">${day}</h3>
+                                            <div class="flex flex-wrap gap-2">
+                                                ${times.map(t => `
+                                                    <button type="button"
+                                                        class="time-slot border border-blue-300 text-sm px-3 py-1 rounded hover:bg-blue-100 transition"
+                                                        data-slot="${t.date} ${t.start_time}|${t.date} ${t.end_time}">
+                                                        ${t.start_time} - ${t.end_time}
+                                                    </button>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    `;
                 }
 
                 $('#calendarView').html(html);
@@ -178,14 +178,14 @@
             const content = (status === 'confirmed')
                 ? `<button class="btn btn-block btn-sm btn-success mt-5" disabled>Booked</button>`
                 : `
-                    <form id="cancelForm" autocomplete="off">
-                        <input type="hidden" name="_method" value="DELETE">
-                        <button type="submit" id="cancelBtn" class="btn btn-block btn-sm btn-warning mt-5" data-id="${appointmentId}">
-                            <span id="cancelButtonText">Cancel Booking</span>
-                            <span id="cancelSpinner" class="loading loading-dots loading-sm hidden"></span>
-                        </button>
-                    </form>
-                  `;
+                                    <form id="cancelForm" autocomplete="off">
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <button type="submit" id="cancelBtn" class="btn btn-block btn-sm btn-warning mt-5" data-id="${appointmentId}">
+                                            <span id="cancelButtonText">Cancel Booking</span>
+                                            <span id="cancelSpinner" class="loading loading-dots loading-sm hidden"></span>
+                                        </button>
+                                    </form>
+                                  `;
             $("#bookForm, #cancelForm").replaceWith(content);
         }
 
@@ -195,27 +195,27 @@
             currentStatus = '';
 
             $("#cancelForm, #bookForm").replaceWith(`
-                <form id="bookForm" autocomplete="off">
-                    <fieldset class="fieldset mb-4">
-                        <legend class="fieldset-legend">Select Schedule</legend>
-                        <div id="calendarView"
-                            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        </div>
-                        <input type="hidden" id="slot" name="slot" required>
-                    </fieldset>
+                                <form id="bookForm" autocomplete="off">
+                                    <fieldset class="fieldset mb-4">
+                                        <legend class="fieldset-legend">Select Schedule</legend>
+                                        <div id="calendarView"
+                                            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        </div>
+                                        <input type="hidden" id="slot" name="slot" required>
+                                    </fieldset>
 
-                    <fieldset class="fieldset mt-3">
-                        <legend class="fieldset-legend">Reason <span class="label text-xs">Optional</span></legend>
-                        <textarea class="w-full textarea" id="reason" name="reason" rows="5"
-                            placeholder="Enter reason here"></textarea>
-                    </fieldset>
+                                    <fieldset class="fieldset mt-3">
+                                        <legend class="fieldset-legend">Reason <span class="label text-xs">Optional</span></legend>
+                                        <textarea class="w-full textarea" id="reason" name="reason" rows="5"
+                                            placeholder="Enter reason here"></textarea>
+                                    </fieldset>
 
-                    <button type="submit" id="bookBtn" class="btn btn-block btn-sm btn-primary mt-5" data-id="${doctorId}">
-                        <span id="buttonText">Book</span>
-                        <span id="spinner" class="loading loading-dots loading-sm hidden"></span>
-                    </button>
-                </form>
-            `);
+                                    <button type="submit" id="bookBtn" class="btn btn-block btn-sm btn-primary mt-5" data-id="${doctorId}">
+                                        <span id="buttonText">Book</span>
+                                        <span id="spinner" class="loading loading-dots loading-sm hidden"></span>
+                                    </button>
+                                </form>
+                            `);
 
             // Reload schedule after form re-render
             loadScheduleSlots();
@@ -227,10 +227,10 @@
             currentStatus = 'cancelled';
 
             $("#bookForm, #cancelForm").replaceWith(`
-                <button class="btn btn-block btn-sm btn-secondary mt-5" disabled>
-                    Doctor Unavailable
-                </button>
-            `);
+                                <button class="btn btn-block btn-sm btn-secondary mt-5" disabled>
+                                    Doctor Unavailable
+                                </button>
+                            `);
         }
 
         /** =====================================================
@@ -288,30 +288,72 @@
             $('#slot').val($(this).data('slot'));
         });
 
-        // Convert datetime string to proper format
-        function to24Hour(datetime) {
-            return new Date(datetime).toISOString().slice(0, 16).replace('T', ' ');
+        // Convert "YYYY-MM-DD hh:mm AM/PM" or "YYYY-MM-DD HH:mm" -> "YYYY-MM-DD HH:mm" (local)
+        function formatLocalDateTime(raw) {
+            // raw examples:
+            //  "2025-11-03 07:00 AM"
+            //  "2025-11-03 07:00" (already 24h)
+            if (!raw || typeof raw !== 'string') return raw;
+
+            const parts = raw.trim().split(' ');
+            // Expect [date, time] or [date, time, ampm]
+            const date = parts[0];
+            if (!date) return raw;
+
+            if (parts.length === 3) {
+                // has AM/PM
+                let time = parts[1];       // e.g. "07:00"
+                const ampm = parts[2].toUpperCase(); // "AM" or "PM"
+                const [hStr, mStr] = time.split(':');
+                let hh = parseInt(hStr, 10);
+                const mm = parseInt(mStr, 10);
+
+                if (ampm === 'PM' && hh !== 12) hh += 12;
+                if (ampm === 'AM' && hh === 12) hh = 0;
+
+                const hhStr = String(hh).padStart(2, '0');
+                const mmStr = String(mm).padStart(2, '0');
+                return `${date} ${hhStr}:${mmStr}`;
+            }
+
+            // If already in "YYYY-MM-DD HH:mm" format, just return normalized
+            if (parts.length >= 2) {
+                const time = parts[1];
+                // ensure HH:mm is padded
+                const [h, m] = time.split(':');
+                if (typeof m === 'undefined') return `${date} ${time}`;
+                const hh = String(parseInt(h, 10)).padStart(2, '0');
+                const mm = String(parseInt(m, 10)).padStart(2, '0');
+                return `${date} ${hh}:${mm}`;
+            }
+
+            return raw;
         }
 
         // Book appointment
         $(document).on("submit", "#bookForm", function (e) {
             e.preventDefault();
-
             const btn = $("#bookBtn");
+
             btn.prop("disabled", true);
             $("#buttonText").addClass("hidden");
             $("#spinner").removeClass("hidden");
 
-            const [rawStart, rawEnd] = $("#slot").val().split("|");
-            const starts_at = to24Hour(rawStart);
-            const ends_at = to24Hour(rawEnd);
+            // #slot contains "YYYY-MM-DD HH:MM AM|YYYY-MM-DD HH:MM AM" (or 24h)
+            const slotVal = $("#slot").val() || '';
+            const [rawStart = '', rawEnd = ''] = slotVal.split("|");
 
-            $.post(`/book/appointment/${doctorId}`, {
+            const starts_at = formatLocalDateTime(rawStart); // returns "Y-m-d H:i"
+            const ends_at = formatLocalDateTime(rawEnd);
+
+            const data = {
                 reason: $("#reason").val(),
                 starts_at,
                 ends_at,
-                _token: csrfToken
-            })
+                _token: "{{ csrf_token() }}"
+            };
+
+            $.post(`/book/appointment/${doctorId}`, data)
                 .done(res => {
                     $.toast({ heading: 'Success', icon: 'success', text: res.message, position: 'top-right' });
                     location.reload();

@@ -48,7 +48,7 @@
                             {{ ucfirst($appointment->doctor->doctor->status ?? 'Not Set') }}
                         </span>
                         <p class="text-sm text-gray-500 mt-2">
-                            📅 {{ $appointment->starts_at->format('F d, Y h:i A') }}
+                            📅 {{ $appointment->starts_at->timezone('Asia/Manila')->format('F d, Y h:i A') }}
                         </p>
                     </div>
 
@@ -144,10 +144,10 @@
                     });
 
                     form.replaceWith(`
-                                                                                                <span class="badge badge-error">
-                                                                                                    Cancelled
-                                                                                                </span>
-                                                                                            `);
+                                                                                                            <span class="badge badge-error">
+                                                                                                                Cancelled
+                                                                                                            </span>
+                                                                                                        `);
                 },
                 error: function (xhr) {
                     $.toast({

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\User;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -44,11 +45,14 @@ class AppointmentController extends Controller
             ], 409);
         }
 
+        $start = Carbon::createFromFormat('Y-m-d H:i', $validated['starts_at'], 'Asia/Manila');
+        $end   = Carbon::createFromFormat('Y-m-d H:i', $validated['ends_at'], 'Asia/Manila');
+
         $appointment = Appointment::create([
             'doctor_user_id' => $doctor->id,
             'patient_user_id' => $userId,
-            'starts_at' => $validated['starts_at'],
-            'ends_at' => $validated['ends_at'],
+            'starts_at' => $start,
+            'ends_at'   => $end,
             'reason' => $validated['reason'] ?? null,
         ]);
 
