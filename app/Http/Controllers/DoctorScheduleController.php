@@ -9,8 +9,12 @@ use Illuminate\Http\Request;
 
 class DoctorScheduleController extends Controller
 {
+    /**
+     * Get all available schedule slots for a given doctor.
+     */
     public function getAvailableSlots($doctorId)
     {
+        // Fetch all active schedules for the doctor
         $schedules = DoctorSchedule::where('doctor_user_id', $doctorId)
             ->where('is_active', true)
             ->get();
@@ -19,15 +23,14 @@ class DoctorScheduleController extends Controller
 
         foreach ($schedules as $schedule) {
             $today = now();
-            $target = Carbon::parse("this {$schedule->day_of_week}");
+            $targetDay = Carbon::parse("this {$schedule->day_of_week}");
 
-            // If today is the same as the schedule day, use today’s date
-            // Otherwise, use the next occurrence of that day
-            $finalDate = $today->isSameDay($target)
+            // Determine whether to use today’s date or the next occurrence of that day
+            $finalDate = $today->isSameDay($targetDay)
                 ? $today->format('Y-m-d')
                 : $today->next($schedule->day_of_week)->format('Y-m-d');
 
-            // Build the formatted slot
+            // Format and store the available slot
             $availableSlots[] = [
                 'day_of_week' => $schedule->day_of_week,
                 'date'        => $finalDate,
@@ -36,10 +39,10 @@ class DoctorScheduleController extends Controller
             ];
         }
 
-        // Remove duplicates (in case multiple entries fall on the same date/time)
-        $availableSlots = collect($availableSlots)->unique(function ($slot) {
-            return $slot['day_of_week'] . $slot['start_time'] . $slot['end_time'];
-        })->values();
+        // Remove duplicate day/time entries
+        $availableSlots = collect($availableSlots)
+            ->unique(fn($slot) => $slot['day_of_week'] . $slot['start_time'] . $slot['end_time'])
+            ->values();
 
         return response()->json($availableSlots);
     }
