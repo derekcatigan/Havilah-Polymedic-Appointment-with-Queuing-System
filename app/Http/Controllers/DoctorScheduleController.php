@@ -15,40 +15,14 @@ class DoctorScheduleController extends Controller
             ->where('is_active', true)
             ->get();
 
-        $availableSlots = [];
-
-        foreach ($schedules as $schedule) {
-            for ($i = 0; $i < 7; $i++) { // show slots for the next 7 days
-                $date = Carbon::now()->startOfDay()->addDays($i);
-
-                if ($date->format('l') !== $schedule->day_of_week) {
-                    continue;
-                }
-
-                $start = Carbon::parse($date->format('Y-m-d') . ' ' . $schedule->start_time);
-                $end = Carbon::parse($date->format('Y-m-d') . ' ' . $schedule->end_time);
-
-                $appointments = Appointment::where('doctor_user_id', $doctorId)
-                    ->whereBetween('starts_at', [$start, $end])
-                    ->pluck('starts_at');
-
-                $slot = $start->copy();
-                while ($slot->lt($end)) {
-                    $slotEnd = $slot->copy()->addMinutes(30);
-                    $isBooked = $appointments->contains(fn($a) => $a->format('Y-m-d H:i') === $slot->format('Y-m-d H:i'));
-
-                    if (!$isBooked) {
-                        $availableSlots[] = [
-                            'date' => $date->format('Y-m-d'),
-                            'start_time' => $slot->format('H:i'),
-                            'end_time' => $slotEnd->format('H:i'),
-                        ];
-                    }
-
-                    $slot->addMinutes(30);
-                }
-            }
-        }
+        $availableSlots = $schedules->map(function ($schedule) {
+            return [
+                'day_of_week' => $schedule->day_of_week,
+                'start_time'  => Carbon::parse($schedule->start_time)->format('h:i A'),
+                'end_time'    => Carbon::parse($schedule->end_time)->format('h:i A'),
+                'date'        => Carbon::now()->next($schedule->day_of_week)->format('Y-m-d'),
+            ];
+        })->unique(fn($slot) => $slot['day_of_week'] . $slot['start_time'] . $slot['end_time'])->values();
 
         return response()->json($availableSlots);
     }

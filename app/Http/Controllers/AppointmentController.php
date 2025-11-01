@@ -103,7 +103,7 @@ class AppointmentController extends Controller
             return response()->json([
                 'message' => 'Appointment history removed successfully.'
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Delete history failed: ' . $e->getMessage());
 
             return response()->json([

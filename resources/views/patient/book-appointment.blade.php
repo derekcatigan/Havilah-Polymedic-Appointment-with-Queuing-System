@@ -49,12 +49,17 @@
                             {{-- Revert back to booking form --}}
                             <form id="bookForm" autocomplete="off">
                                 @csrf
-                                <fieldset class="fieldset">
+                                <fieldset class="fieldset mb-4">
                                     <legend class="fieldset-legend">Select Schedule</legend>
-                                    <select id="slot" name="slot" class="select w-full" required>
-                                        <option value="">Select a time slot</option>
-                                    </select>
+                                    <div id="calendarView"
+                                        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        <!-- Slots will be loaded here dynamically -->
+                                    </div>
+
+                                    <!-- Hidden input to store the selected value -->
+                                    <input type="hidden" id="slot" name="slot" required>
                                 </fieldset>
+
 
                                 <fieldset class="fieldset mt-3">
                                     <legend class="fieldset-legend">Reason <span class="label text-xs">Optional</span></legend>
@@ -74,12 +79,17 @@
                             {{-- Show booking form --}}
                             <form id="bookForm" autocomplete="off">
                                 @csrf
-                                <fieldset class="fieldset">
+                                <fieldset class="fieldset mb-4">
                                     <legend class="fieldset-legend">Select Schedule</legend>
-                                    <select id="slot" name="slot" class="select w-full" required>
-                                        <option value="">Select a time slot</option>
-                                    </select>
+                                    <div id="calendarView"
+                                        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        <!-- Slots will be loaded here dynamically -->
+                                    </div>
+
+                                    <!-- Hidden input to store the selected value -->
+                                    <input type="hidden" id="slot" name="slot" required>
                                 </fieldset>
+
 
                                 <fieldset class="fieldset mt-3">
                                     <legend class="fieldset-legend">Reason <span class="label text-xs">Optional</span></legend>
@@ -109,89 +119,133 @@
 
 @section('script')
     <script>
+        /** ------------ Global Variables ------------ **/
         const csrfToken = "{{ csrf_token() }}";
         const doctorId = "{{ $users->id }}";
         let currentAppointmentId = "{{ $appointment->id ?? '' }}";
         let currentStatus = "{{ $appointment->status ?? '' }}";
 
+        /** ------------ AJAX Setup ------------ **/
         $.ajaxSetup({
             headers: { 'X-CSRF-TOKEN': csrfToken }
         });
 
-        /** ------------ UI Renderers ------------ **/
+        /** =====================================================
+         *  FETCH & RENDER DOCTOR'S AVAILABLE SCHEDULE SLOTS
+         *  ===================================================== **/
+        function loadScheduleSlots() {
+            $.get(`/doctor/${doctorId}/available-slots`, function (slots) {
+                const grouped = {};
+
+                // Group schedules by day
+                slots.forEach(slot => {
+                    if (!grouped[slot.day_of_week]) grouped[slot.day_of_week] = [];
+                    grouped[slot.day_of_week].push(slot);
+                });
+
+                // Build schedule cards
+                let html = '';
+                for (const [day, times] of Object.entries(grouped)) {
+                    html += `
+                        <div class="border border-gray-300 rounded-lg p-3 bg-white shadow-sm">
+                            <h3 class="font-semibold text-blue-600 mb-2">${day}</h3>
+                            <div class="flex flex-wrap gap-2">
+                                ${times.map(t => `
+                                    <button type="button"
+                                        class="time-slot border border-blue-300 text-sm px-3 py-1 rounded hover:bg-blue-100 transition"
+                                        data-slot="${t.date} ${t.start_time}|${t.date} ${t.end_time}">
+                                        ${t.start_time} - ${t.end_time}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                $('#calendarView').html(html);
+            });
+        }
+
+        /** =====================================================
+         *  UI STATE HANDLERS
+         *  ===================================================== **/
+
+        // When appointment exists
         function renderBooked(appointmentId, status = 'pending') {
             currentAppointmentId = appointmentId;
             currentStatus = status;
 
-            if (status === 'confirmed') {
-                $("#bookForm, #cancelForm").replaceWith(`
-                                                            <button class="btn btn-block btn-sm btn-success mt-5" disabled>Booked</button>
-                                                        `);
-            } else {
-                $("#bookForm, #cancelForm").replaceWith(`
-                                                            <form id="cancelForm" autocomplete="off">
-                                                                <input type="hidden" name="_method" value="DELETE">
-                                                                <button type="submit" id="cancelBtn" class="btn btn-block btn-sm btn-warning mt-5" data-id="${appointmentId}">
-                                                                    <span id="cancelButtonText">Cancel Booking</span>
-                                                                    <span id="cancelSpinner" class="loading loading-dots loading-sm hidden"></span>
-                                                                </button>
-                                                            </form>
-                                                        `);
-            }
+            const content = (status === 'confirmed')
+                ? `<button class="btn btn-block btn-sm btn-success mt-5" disabled>Booked</button>`
+                : `
+                    <form id="cancelForm" autocomplete="off">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <button type="submit" id="cancelBtn" class="btn btn-block btn-sm btn-warning mt-5" data-id="${appointmentId}">
+                            <span id="cancelButtonText">Cancel Booking</span>
+                            <span id="cancelSpinner" class="loading loading-dots loading-sm hidden"></span>
+                        </button>
+                    </form>
+                  `;
+            $("#bookForm, #cancelForm").replaceWith(content);
         }
 
+        // When appointment is cancelled or no appointment exists
         function renderAvailable() {
             currentAppointmentId = '';
             currentStatus = '';
 
             $("#cancelForm, #bookForm").replaceWith(`
-                                                        <form id="bookForm" autocomplete="off">
-                                                            <fieldset class="fieldset">
-                                                                <legend class="fieldset-legend">Reason <span class="label text-xs">Optional</span></legend>
-                                                                <textarea class="w-full textarea" id="reason" name="reason" rows="5" placeholder="Enter reason here"></textarea>
-                                                            </fieldset>
-                                                            <button type="submit" id="bookBtn" class="btn btn-block btn-sm btn-primary mt-5" data-id="${doctorId}">
-                                                                <span id="buttonText">Book</span>
-                                                                <span id="spinner" class="loading loading-dots loading-sm hidden"></span>
-                                                            </button>
-                                                        </form>
-                                                    `);
+                <form id="bookForm" autocomplete="off">
+                    <fieldset class="fieldset mb-4">
+                        <legend class="fieldset-legend">Select Schedule</legend>
+                        <div id="calendarView"
+                            class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        </div>
+                        <input type="hidden" id="slot" name="slot" required>
+                    </fieldset>
+
+                    <fieldset class="fieldset mt-3">
+                        <legend class="fieldset-legend">Reason <span class="label text-xs">Optional</span></legend>
+                        <textarea class="w-full textarea" id="reason" name="reason" rows="5"
+                            placeholder="Enter reason here"></textarea>
+                    </fieldset>
+
+                    <button type="submit" id="bookBtn" class="btn btn-block btn-sm btn-primary mt-5" data-id="${doctorId}">
+                        <span id="buttonText">Book</span>
+                        <span id="spinner" class="loading loading-dots loading-sm hidden"></span>
+                    </button>
+                </form>
+            `);
+
+            // Reload schedule after form re-render
+            loadScheduleSlots();
         }
 
+        // When doctor is unavailable
         function renderUnavailable() {
             currentAppointmentId = '';
             currentStatus = 'cancelled';
 
             $("#bookForm, #cancelForm").replaceWith(`
-                                                        <button class="btn btn-block btn-sm btn-secondary mt-5" disabled>Doctor Unavailable</button>
-                                                    `);
+                <button class="btn btn-block btn-sm btn-secondary mt-5" disabled>
+                    Doctor Unavailable
+                </button>
+            `);
         }
 
-        /** ------------ Actions ------------ **/
-        // function bookAppointment(formData, btn) {
-        //     $.post(`/book/appointment/${doctorId}`, formData)
-        //         .done(res => {
-        //             $.toast({ heading: 'Success', icon: 'success', text: res.message, position: 'top-right' });
-        //             renderBooked(res.appointment_id, res.status || 'pending');
-        //         })
-        //         .fail(xhr => {
-        //             const error = xhr.responseJSON?.message || "Booking failed.";
-        //             $.toast({ heading: 'Error', icon: 'error', text: error, position: 'top-right' });
-        //         })
-        //         .always(() => {
-        //             btn.prop("disabled", false);
-        //             $("#buttonText").removeClass("hidden");
-        //             $("#spinner").addClass("hidden");
-        //         });
-        // }
-
+        /** =====================================================
+         *  CANCEL APPOINTMENT FUNCTION
+         *  ===================================================== **/
         function cancelAppointment(appointmentId, btn, autoCancel = false) {
             $.ajax({ url: `/cancel/appointment/${appointmentId}`, type: "DELETE" })
                 .done(res => {
-                    const msg = autoCancel ? "Doctor unavailable. Your booking was auto-cancelled." : res.message;
+                    const msg = autoCancel
+                        ? "Doctor unavailable. Your booking was auto-cancelled."
+                        : res.message;
+
                     $.toast({ heading: 'Success', icon: 'success', text: msg, position: 'top-right' });
 
-                    // If doctor available → show booking form, else show unavailable
+                    // Restore booking form if doctor is still available
                     if ("{{ $users->doctor->status }}" === "available" && !autoCancel) {
                         renderAvailable();
                     } else {
@@ -199,10 +253,15 @@
                     }
                 })
                 .fail(xhr => {
-                    $.toast({ heading: 'Error', icon: 'error', text: xhr.responseJSON?.message || "Cancel failed.", position: 'top-right' });
+                    $.toast({
+                        heading: 'Error',
+                        icon: 'error',
+                        text: xhr.responseJSON?.message || "Cancel failed.",
+                        position: 'top-right'
+                    });
                 })
                 .always(() => {
-                    if (!autoCancel) {
+                    if (!autoCancel && btn) {
                         btn.prop("disabled", false);
                         $("#cancelButtonText").removeClass("hidden");
                         $("#cancelSpinner").addClass("hidden");
@@ -210,38 +269,60 @@
                 });
         }
 
-        $.get(`/doctor/${doctorId}/available-slots`, function (slots) {
-            let options = slots.map(slot => {
-                return `<option value="${slot.date} ${slot.start_time}|${slot.end_time}">
-                            ${slot.date} — ${slot.start_time} to ${slot.end_time}
-                        </option>`;
-            }).join('');
-            $("#slot").append(options);
+        /** =====================================================
+         *  INITIAL LOAD
+         *  ===================================================== **/
+        if (!window.scheduleLoaded) {
+            window.scheduleLoaded = true;
+            loadScheduleSlots();
+        }
+
+        /** =====================================================
+         *  INTERACTIONS & FORM HANDLING
+         *  ===================================================== **/
+
+        // Highlight selected time slot
+        $(document).on('click', '.time-slot', function () {
+            $('.time-slot').removeClass('bg-blue-500 text-white');
+            $(this).addClass('bg-blue-500 text-white');
+            $('#slot').val($(this).data('slot'));
         });
 
-        /** ------------ Event Bindings ------------ **/
+        // Convert datetime string to proper format
+        function to24Hour(datetime) {
+            return new Date(datetime).toISOString().slice(0, 16).replace('T', ' ');
+        }
+
+        // Book appointment
         $(document).on("submit", "#bookForm", function (e) {
             e.preventDefault();
+
             const btn = $("#bookBtn");
             btn.prop("disabled", true);
             $("#buttonText").addClass("hidden");
             $("#spinner").removeClass("hidden");
 
-            const [starts_at, ends_at] = $("#slot").val().split("|");
-            const data = {
+            const [rawStart, rawEnd] = $("#slot").val().split("|");
+            const starts_at = to24Hour(rawStart);
+            const ends_at = to24Hour(rawEnd);
+
+            $.post(`/book/appointment/${doctorId}`, {
                 reason: $("#reason").val(),
                 starts_at,
                 ends_at,
-                _token: "{{ csrf_token() }}"
-            };
-
-            $.post(`/book/appointment/${doctorId}`, data)
+                _token: csrfToken
+            })
                 .done(res => {
                     $.toast({ heading: 'Success', icon: 'success', text: res.message, position: 'top-right' });
                     location.reload();
                 })
                 .fail(xhr => {
-                    $.toast({ heading: 'Error', icon: 'error', text: xhr.responseJSON?.message || "Booking failed.", position: 'top-right' });
+                    $.toast({
+                        heading: 'Error',
+                        icon: 'error',
+                        text: xhr.responseJSON?.message || "Booking failed.",
+                        position: 'top-right'
+                    });
                 })
                 .always(() => {
                     btn.prop("disabled", false);
@@ -250,27 +331,24 @@
                 });
         });
 
+        // Cancel booking manually
         $(document).on("submit", "#cancelForm", function (e) {
             e.preventDefault();
             const btn = $("#cancelBtn");
-            const appointmentId = btn.data("id");
-
-            btn.prop("disabled", true);
-            $("#cancelButtonText").addClass("hidden");
-            $("#cancelSpinner").removeClass("hidden");
-
-            cancelAppointment(appointmentId, btn);
+            cancelAppointment(btn.data("id"), btn);
         });
 
-        /** ------------ Auto-Cancel If Doctor Unavailable ------------ **/
+        /** =====================================================
+         *  AUTO-CANCEL IF DOCTOR UNAVAILABLE
+         *  ===================================================== **/
         setInterval(() => {
             if (!currentAppointmentId || currentStatus !== 'pending') return;
 
             $.get(`/doctor/${doctorId}/status`, res => {
                 if (res.status === "unavailable") {
-                    cancelAppointment(currentAppointmentId, null, true); // auto-cancel
+                    cancelAppointment(currentAppointmentId, null, true);
                 }
             });
-        }, 5000); // every 5s
+        }, 5000); // Every 5 seconds
     </script>
 @endsection
