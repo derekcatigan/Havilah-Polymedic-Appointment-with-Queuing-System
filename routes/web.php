@@ -14,6 +14,7 @@ use App\Http\Controllers\ManageADSController;
 use App\Http\Controllers\ManageAppointmentController;
 use App\Http\Controllers\ManageDoctorController;
 use App\Http\Controllers\ManagePatientController;
+use App\Http\Controllers\ManageServicesController;
 use App\Http\Controllers\MyScheduleController;
 use App\Http\Controllers\StaffDashboardController;
 use App\Http\Controllers\StaffQueueController;
@@ -66,6 +67,17 @@ Route::middleware('auth')->group(function () {
 
         // ManagePatientController
         Route::get('/admin/manage-patient', [ManagePatientController::class, 'index'])->name('admin.manage.patient');
+
+        // ManageServicesController
+        Route::get('/admin/manage-services', [ManageServicesController::class, 'index'])->name('admin.manage.services');
+        Route::get('/admin/create-services', [ManageServicesController::class, 'create'])->name('admin.services.create');
+        Route::post('/admin/services/store', [ManageServicesController::class, 'store'])->name('admin.services.store');
+        Route::get('/admin/services/{service}/edit', [ManageServicesController::class, 'edit'])
+            ->name('admin.services.edit');
+        Route::put('/admin/services/{service}', [ManageServicesController::class, 'update'])
+            ->name('admin.services.update');
+        Route::delete('/admin/services/{service}', [ManageServicesController::class, 'destroy'])
+            ->name('admin.services.destroy');
     });
 
     // Doctor Routes

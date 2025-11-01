@@ -2,118 +2,206 @@
 @extends('layout.layout')
 
 @section('content')
-    <div class="p-5">
-        <h1 class="text-2xl font-bold mb-4">Manage Ads</h1>
+    <div class="min-h-screen bg-base-200 p-6 md:p-10">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-2xl font-bold text-primary flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 20h9M12 4h9m-9 8h9M3 4h.01M3 12h.01M3 20h.01" />
+                    </svg>
+                    Manage Ads
+                </h1>
+            </div>
 
-        {{-- Flash message --}}
-        @if (session('success'))
-            <div class="alert alert-success mb-3">{{ session('success') }}</div>
-        @endif
-
-        {{-- Create new ad --}}
-        <form id="createAdForm" action="{{ route('admin.ads.store') }}" method="POST" enctype="multipart/form-data"
-            class="border border-gray-300 rounded-lg p-4 mb-6 bg-white shadow-sm">
-            @csrf
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block font-medium mb-1">Title</label>
-                    <input type="text" name="title" class="input input-bordered w-full" placeholder="Ad title">
+            <!-- Flash Message -->
+            @if (session('success'))
+                <div class="alert alert-success mb-6 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{{ session('success') }}</span>
                 </div>
+            @endif
 
-                <div>
-                    <label class="block font-medium mb-1">Image</label>
-                    <input type="file" name="image" class="file-input file-input-bordered w-full" required>
-                </div>
+            <!-- Create Ad Form -->
+            <div class="card bg-base-100 shadow-xl border border-base-300 mb-10">
+                <div class="card-body">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2 text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Create New Ad
+                    </h2>
 
-                <div>
-                    <label class="block font-medium mb-1">Link (optional)</label>
-                    <input type="url" name="link" class="input input-bordered w-full" placeholder="https://example.com">
-                </div>
+                    <form id="createAdForm" action="{{ route('admin.ads.store') }}" method="POST"
+                        enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        @csrf
 
-                <div>
-                    <label class="block font-medium mb-1">Position</label>
-                    <select name="position" class="select select-bordered w-full">
-                        <option value="homepage">Homepage</option>
-                        <option value="sidebar">Sidebar</option>
-                        <option value="footer">Footer</option>
-                    </select>
-                </div>
+                        <!-- Title -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Title</span>
+                            </label>
+                            <input type="text" name="title" class="input input-bordered w-full"
+                                placeholder="Enter ad title" />
+                        </div>
 
-                <div>
-                    <label class="block font-medium mb-1">Status</label>
-                    <select name="status" class="select select-bordered w-full">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
+                        <!-- Image -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Image</span>
+                            </label>
+                            <input type="file" name="image" class="file-input file-input-bordered w-full" required />
+                        </div>
+
+                        <!-- Link -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Link (optional)</span>
+                            </label>
+                            <input type="url" name="link" class="input input-bordered w-full"
+                                placeholder="https://example.com" />
+                        </div>
+
+                        <!-- Position -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Position</span>
+                            </label>
+                            <select name="position" class="select select-bordered w-full">
+                                <option disabled selected>Select position</option>
+                                <option value="homepage">Homepage</option>
+                                <option value="sidebar">Sidebar</option>
+                                <option value="footer">Footer</option>
+                            </select>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-medium">Status</span>
+                            </label>
+                            <select name="status" class="select select-bordered w-full">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="md:col-span-2 flex justify-end mt-4">
+                            <button type="reset" class="btn btn-outline btn-sm mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4.5 19.5L19.5 4.5M19.5 19.5L4.5 4.5" />
+                                </svg>
+                                Reset
+                            </button>
+                            <button type="submit" id="createBtn" class="btn btn-primary btn-sm text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4" />
+                                </svg>
+                                <span id="buttonText">Add Ad</span>
+                                <span id="spinner" class="loading loading-dots loading-sm hidden"></span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
-            <div class="mt-4">
-                <button type="submit" id="createBtn" class="btn btn-sm btn-block btn-primary mt-5">
-                    <span id="buttonText">Add Ad</span>
-                    <span id="spinner" class="loading loading-dots loading-sm hidden"></span>
-                </button>
-            </div>
-        </form>
+            <!-- Ads Table -->
+            <div class="card bg-base-100 shadow-xl border border-base-300">
+                <div class="card-body">
+                    <h2 class="text-lg font-semibold mb-4 text-primary flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v16l-8-4-8 4V4z" />
+                        </svg>
+                        Current Ads
+                    </h2>
 
-        {{-- Ads Table --}}
-        <div class="overflow-x-auto border border-gray-300 rounded-lg bg-white shadow-sm">
-            <table class="table w-full">
-                <thead class="bg-gray-100">
-                    <tr class="divide-x divide-gray-300">
-                        <th>#</th>
-                        <th>Title</th>
-                        <th>Image</th>
-                        <th>Link</th>
-                        <th>Position</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    @forelse ($ads as $index => $ad)
-                        <tr class="divide-x divide-gray-200">
-                            <td>{{ $index + 1 }}</td>
-                            <td>{{ $ad->title ?? '—' }}</td>
-                            <td>
-                                <img src="{{ asset('storage/' . $ad->image_path) }}" alt="Ad"
-                                    class="w-24 h-16 object-cover rounded">
-                            </td>
-                            <td>
-                                @if($ad->link)
-                                    <a href="{{ $ad->link }}" class="text-blue-500 underline" target="_blank">{{ $ad->link }}</a>
-                                @else
-                                    —
-                                @endif
-                            </td>
-                            <td>{{ ucfirst($ad->position) }}</td>
-                            <td>
-                                <span class="badge {{ $ad->status === 'active' ? 'badge-success' : 'badge-error' }}">
-                                    {{ ucfirst($ad->status) }}
-                                </span>
-                            </td>
-                            <td>
-                                <form action="{{ route('admin.ads.destroy', $ad) }}" method="POST"
-                                    onsubmit="return confirm('Delete this ad?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-error text-white">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center">No ads found</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-            <div class="p-4">
-                {{ $ads->links() }}
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra w-full">
+                            <thead class="bg-base-200 text-sm uppercase text-gray-600">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Title</th>
+                                    <th>Image</th>
+                                    <th>Link</th>
+                                    <th>Position</th>
+                                    <th>Status</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($ads as $index => $ad)
+                                    <tr>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td class="font-medium">{{ $ad->title ?? '—' }}</td>
+                                        <td>
+                                            <img src="{{ asset('storage/' . $ad->image_path) }}" alt="Ad"
+                                                class="w-20 h-14 object-cover rounded-lg border border-base-300 shadow-sm">
+                                        </td>
+                                        <td>
+                                            @if ($ad->link)
+                                                <a href="{{ $ad->link }}" class="text-blue-600 underline"
+                                                    target="_blank">{{ Str::limit($ad->link, 25) }}</a>
+                                            @else
+                                                —
+                                            @endif
+                                        </td>
+                                        <td>{{ ucfirst($ad->position) }}</td>
+                                        <td>
+                                            <span
+                                                class="badge {{ $ad->status === 'active' ? 'badge-success' : 'badge-error' }}">
+                                                {{ ucfirst($ad->status) }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <form action="{{ route('admin.ads.destroy', $ad) }}" method="POST"
+                                                onsubmit="return confirm('Are you sure you want to delete this ad?')"
+                                                class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="btn btn-sm btn-error text-white flex items-center gap-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                                        viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center text-gray-500 py-4">No ads found</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-6">
+                        {{ $ads->links() }}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 @endsection
+
 
 @section('script')
     <script>

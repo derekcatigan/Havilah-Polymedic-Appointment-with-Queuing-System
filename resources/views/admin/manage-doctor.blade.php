@@ -100,7 +100,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center">No accounts found</td>
+                            <td colspan="6" class="text-center">No doctors found</td>
                         </tr>
                     @endforelse
                 </tbody>
