@@ -8,7 +8,7 @@
         <!-- Add Schedule Form -->
         <div class="bg-white rounded-lg shadow p-4 mb-6 border border-gray-200">
             <h2 class="text-lg font-semibold mb-3">Add New Schedule</h2>
-            <form method="POST" class="flex flex-col md:flex-row gap-3 items-center">
+            <form id="mySchedule" method="POST" class="flex flex-col md:flex-row gap-3 items-center">
                 @csrf
 
                 <!-- Day of Week -->
@@ -82,7 +82,7 @@
         $(document).ready(function () {
 
             // Add Schedule
-            $('form').on('submit', function (e) {
+            $('#mySchedule').on('submit', function (e) {
                 e.preventDefault();
 
                 const form = $(this);

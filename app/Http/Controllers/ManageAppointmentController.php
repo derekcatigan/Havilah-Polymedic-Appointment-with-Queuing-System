@@ -54,7 +54,6 @@ class ManageAppointmentController extends Controller
         $appointment->update([
             'service_type_id' => $request->service_type_id,
             'status' => 'confirmed',
-            'starts_at' => now('Asia/Manila'),
         ]);
 
         // Handle queue assignment
