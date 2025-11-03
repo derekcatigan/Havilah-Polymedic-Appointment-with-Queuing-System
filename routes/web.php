@@ -114,6 +114,9 @@ Route::middleware('auth')->group(function () {
             ->name('staff.appointments.complete');
         Route::delete('/staff/appointments/{appointment}', [ManageAppointmentController::class, 'destroy'])
             ->name('staff.appointments.destroy');
+        Route::post('/staff/appointments/{appointment}/assign-service', [ManageAppointmentController::class, 'assignService'])
+            ->name('staff.appointments.assignService');
+
 
 
         Route::get('/walkin/create', [WalkInController::class, 'create'])->name('walkin.create');

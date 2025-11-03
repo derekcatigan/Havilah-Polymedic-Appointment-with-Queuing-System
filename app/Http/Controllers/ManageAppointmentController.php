@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\QueueStatusNotification;
 use App\Models\Appointment;
 use App\Models\Queue;
+use App\Models\ServiceType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -16,25 +17,22 @@ class ManageAppointmentController extends Controller
 
         $appointments = Appointment::with(['patient', 'doctor'])
             ->when($search, function ($query, $search) {
-                $query->whereHas('patient', function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%");
-                })
-                    ->orWhereHas('doctor', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
-                    });
+                $query->whereHas('patient', fn($q) => $q->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('doctor', fn($q) => $q->where('name', 'like', "%{$search}%"));
             })
             ->latest()
-            ->paginate(5)
-            ->withQueryString(); // keeps search text in pagination links
+            ->paginate(10)
+            ->withQueryString();
 
         return view('staff.manage-appointment', compact('appointments'));
     }
 
-
     public function show(Appointment $appointment)
     {
-        $appointment->load(['patient', 'doctor']);
-        return view('staff.manage-appointment-detail', compact('appointment'));
+        $appointment->load(['patient', 'doctor', 'serviceType']);
+        $serviceTypes = ServiceType::orderBy('short_description')->get();
+
+        return view('staff.manage-appointment-detail', compact('appointment', 'serviceTypes'));
     }
 
     private function getNextQueueNumber($doctorId)
@@ -46,13 +44,20 @@ class ManageAppointmentController extends Controller
         return $lastQueue ? $lastQueue + 1 : 1;
     }
 
-    public function confirm(Appointment $appointment)
+    public function confirm(Request $request, Appointment $appointment)
     {
+        // Validate and assign service type first
+        $request->validate([
+            'service_type_id' => 'required|exists:service_types,id',
+        ]);
+
         $appointment->update([
+            'service_type_id' => $request->service_type_id,
             'status' => 'confirmed',
             'starts_at' => now('Asia/Manila'),
         ]);
 
+        // Handle queue assignment
         if (!$appointment->queue) {
             $nextQueueNumber = $this->getNextQueueNumber($appointment->doctor_user_id);
 
@@ -68,14 +73,14 @@ class ManageAppointmentController extends Controller
             $queue = $appointment->queue;
         }
 
+        // Send notification email if not walk-in
         if (!str_ends_with($appointment->patient->email, '@walkin.local')) {
             Mail::to($appointment->patient->email)
                 ->send(new QueueStatusNotification($queue, 'Your appointment has been confirmed.'));
         }
 
-        return back()->with('success', 'Appointment confirmed and queue number assigned.');
+        return back()->with('success', 'Appointment confirmed, service type assigned, and queue number generated.');
     }
-
 
     public function cancel(Appointment $appointment)
     {

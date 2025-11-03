@@ -51,7 +51,7 @@
                             <td>{{ $service->short_description ?? '—' }}</td>
                             <td>
                                 <div class="dropdown dropdown-end">
-                                    <button tabindex="0" class="btn btn-sm btn-ghost">
+                                    <button tabindex="0" class="btn btn-sm">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                             stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                             <path stroke-linecap="round" stroke-linejoin="round"

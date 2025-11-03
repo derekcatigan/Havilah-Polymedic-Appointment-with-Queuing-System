@@ -32,8 +32,7 @@
                     </div>
                     <div>
                         <p class="font-medium">{{ $appointment->doctor->name }}</p>
-                        <p class="text-sm text-gray-500">{{ Str::title($appointment->doctor->doctor->specialty ?? 'N/A') }}
-                        </p>
+                        <p class="text-sm text-gray-500">{{ Str::title($appointment->doctor->doctor->specialty ?? 'N/A') }}</p>
                         <p class="text-sm">
                             Status:
                             <span @class([
@@ -52,7 +51,7 @@
 
         {{-- Appointment Info --}}
         <div class="card bg-base-100 shadow-md border border-base-200">
-            <div class="card-body">
+            <div class="card-body space-y-4">
                 <h3 class="text-lg font-semibold mb-2">Appointment Information</h3>
                 <p><span class="font-medium">Date:</span> {{ $appointment->starts_at->format('M d, Y h:i A') }}</p>
                 <p>
@@ -67,29 +66,53 @@
                         {{ ucfirst($appointment->status) }}
                     </span>
                 </p>
+
+                {{-- Service Type Selection --}}
+                <form id="confirmForm" method="POST" action="{{ route('staff.appointments.confirm', $appointment->id) }}">
+                    @csrf
+                    <div class="form-control w-full md:w-1/2">
+                        <label class="label">
+                            <span class="label-text font-medium">Select Service Type</span>
+                        </label>
+                        <select name="service_type_id" class="select select-bordered w-full" required>
+                            <option value="" disabled {{ !$appointment->service_type_id ? 'selected' : '' }}>-- Choose Service Type --</option>
+                            @foreach ($serviceTypes as $service)
+                                <option value="{{ $service->id }}"
+                                    {{ $appointment->service_type_id == $service->id ? 'selected' : '' }}>
+                                    {{ $service->short_description }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </form>
             </div>
         </div>
 
         {{-- Actions --}}
         <div class="card bg-base-100 shadow-md border border-base-200">
-            <div class="card-body">
+            <div class="card-body space-y-4">
                 <h3 class="text-lg font-semibold mb-3">Actions</h3>
+
                 <div class="flex flex-wrap gap-3">
-                    <form method="POST" action="{{ route('staff.appointments.confirm', $appointment->id) }}">
-                        @csrf
-                        <button class="btn btn-success" @disabled($appointment->status !== 'pending')>Confirm</button>
-                    </form>
+                    {{-- Confirm button triggers service type form --}}
+                    <button form="confirmForm" type="submit" class="btn btn-success"
+                        @disabled($appointment->status !== 'pending')>
+                        Confirm
+                    </button>
 
                     <form method="POST" action="{{ route('staff.appointments.cancel', $appointment->id) }}">
                         @csrf
-                        <button class="btn btn-error" @disabled($appointment->status === 'cancelled' || $appointment->status === 'completed')>
+                        <button class="btn btn-error"
+                            @disabled($appointment->status === 'cancelled' || $appointment->status === 'completed')>
                             Cancel
                         </button>
                     </form>
 
                     <form method="POST" action="{{ route('staff.appointments.complete', $appointment->id) }}">
                         @csrf
-                        <button class="btn btn-info" @disabled($appointment->status !== 'confirmed')>Complete</button>
+                        <button class="btn btn-info" @disabled($appointment->status !== 'confirmed')>
+                            Complete
+                        </button>
                     </form>
                 </div>
             </div>
