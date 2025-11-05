@@ -29,7 +29,7 @@ class ManageAppointmentController extends Controller
 
     public function show(Appointment $appointment)
     {
-        $appointment->load(['patient', 'doctor', 'serviceType']);
+        $appointment->load(['patient', 'doctor', 'serviceTypes']);
         $serviceTypes = ServiceType::orderBy('short_description')->get();
 
         return view('staff.manage-appointment-detail', compact('appointment', 'serviceTypes'));
@@ -44,15 +44,21 @@ class ManageAppointmentController extends Controller
         return $lastQueue ? $lastQueue + 1 : 1;
     }
 
-    public function confirm(Request $request, Appointment $appointment)
+    public function addServiceType(Request $request, Appointment $appointment)
     {
-        // Validate and assign service type first
         $request->validate([
             'service_type_id' => 'required|exists:service_types,id',
         ]);
 
+        // Attach service type (avoid duplicates)
+        $appointment->serviceTypes()->syncWithoutDetaching([$request->service_type_id]);
+
+        return back()->with('success', 'Service Type added to this appointment.');
+    }
+
+    public function confirm(Appointment $appointment)
+    {
         $appointment->update([
-            'service_type_id' => $request->service_type_id,
             'status' => 'confirmed',
         ]);
 

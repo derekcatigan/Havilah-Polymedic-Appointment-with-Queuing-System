@@ -67,6 +67,12 @@ Route::middleware('auth')->group(function () {
 
         // ManagePatientController
         Route::get('/admin/manage-patient', [ManagePatientController::class, 'index'])->name('admin.manage.patient');
+        Route::post('/admin/patients', [ManagePatientController::class, 'store'])->name('admin.patients.store');
+        Route::get('/admin/patients/{patient}/edit', [ManagePatientController::class, 'edit'])->name('edit');
+        Route::put('/admin/patients/{patient}', [ManagePatientController::class, 'update'])->name('update');
+        Route::delete('/admin/patients/{patient}', [ManagePatientController::class, 'destroy'])->name('destroy');
+        Route::get('/admin/patients/{patient}', [ManagePatientController::class, 'show'])
+            ->name('admin.patients.show');
 
         // ManageServicesController
         Route::get('/admin/manage-services', [ManageServicesController::class, 'index'])->name('admin.manage.services');
@@ -114,8 +120,8 @@ Route::middleware('auth')->group(function () {
             ->name('staff.appointments.complete');
         Route::delete('/staff/appointments/{appointment}', [ManageAppointmentController::class, 'destroy'])
             ->name('staff.appointments.destroy');
-        Route::post('/staff/appointments/{appointment}/assign-service', [ManageAppointmentController::class, 'assignService'])
-            ->name('staff.appointments.assignService');
+        Route::post('/staff/appointments/{appointment}/add-service', [ManageAppointmentController::class, 'addServiceType'])
+            ->name('staff.appointments.addServiceType');
 
 
 

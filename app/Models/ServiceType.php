@@ -22,6 +22,6 @@ class ServiceType extends Model
 
     public function appointments()
     {
-        return $this->hasMany(Appointment::class, 'service_type_id');
+        return $this->belongsToMany(Appointment::class, 'appointment_service_type');
     }
 }

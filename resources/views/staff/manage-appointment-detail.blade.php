@@ -32,7 +32,8 @@
                     </div>
                     <div>
                         <p class="font-medium">{{ $appointment->doctor->name }}</p>
-                        <p class="text-sm text-gray-500">{{ Str::title($appointment->doctor->doctor->specialty ?? 'N/A') }}</p>
+                        <p class="text-sm text-gray-500">{{ Str::title($appointment->doctor->doctor->specialty ?? 'N/A') }}
+                        </p>
                         <p class="text-sm">
                             Status:
                             <span @class([
@@ -68,23 +69,23 @@
                 </p>
 
                 {{-- Service Type Selection --}}
-                <form id="confirmForm" method="POST" action="{{ route('staff.appointments.confirm', $appointment->id) }}">
-                    @csrf
-                    <div class="form-control w-full md:w-1/2">
-                        <label class="label">
-                            <span class="label-text font-medium">Select Service Type</span>
-                        </label>
+                <div class="form-control w-full md:w-1/2">
+                    <label class="label">
+                        <span class="label-text font-medium">Add Service Type</span>
+                    </label>
+
+                    <form id="addServiceForm" method="POST"
+                        action="{{ route('staff.appointments.addServiceType', $appointment->id) }}" class="flex gap-2">
+                        @csrf
                         <select name="service_type_id" class="select select-bordered w-full" required>
-                            <option value="" disabled {{ !$appointment->service_type_id ? 'selected' : '' }}>-- Choose Service Type --</option>
+                            <option value="">-- Choose Service Type --</option>
                             @foreach ($serviceTypes as $service)
-                                <option value="{{ $service->id }}"
-                                    {{ $appointment->service_type_id == $service->id ? 'selected' : '' }}>
-                                    {{ $service->short_description }}
-                                </option>
+                                <option value="{{ $service->id }}">{{ $service->short_description }}</option>
                             @endforeach
                         </select>
-                    </div>
-                </form>
+                        <button type="submit" class="btn btn-outline btn-primary">Add</button>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -94,16 +95,17 @@
                 <h3 class="text-lg font-semibold mb-3">Actions</h3>
 
                 <div class="flex flex-wrap gap-3">
-                    {{-- Confirm button triggers service type form --}}
-                    <button form="confirmForm" type="submit" class="btn btn-success"
-                        @disabled($appointment->status !== 'pending')>
-                        Confirm
-                    </button>
+                    <form method="POST" action="{{ route('staff.appointments.confirm', $appointment->id) }}">
+                        @csrf
+                        <button type="submit" class="btn btn-success" @disabled($appointment->status !== 'pending')>
+                            Confirm
+                        </button>
+                    </form>
+
 
                     <form method="POST" action="{{ route('staff.appointments.cancel', $appointment->id) }}">
                         @csrf
-                        <button class="btn btn-error"
-                            @disabled($appointment->status === 'cancelled' || $appointment->status === 'completed')>
+                        <button class="btn btn-error" @disabled($appointment->status === 'cancelled' || $appointment->status === 'completed')>
                             Cancel
                         </button>
                     </form>
