@@ -22,15 +22,22 @@
         </div>
 
         <div>
-            <button class="btn btn-sm btn-primary" onclick="addPatientModal.showModal()">
-                <!-- Heroicon: User Plus -->
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                        d="M8 9a3 3 0 100-6 3 3 0 000 6zm5 2a5 5 0 10-10 0v3h10v-3zm3 1h2v2h-2v2h-2v-2h-2v-2h2V9h2v3z"
-                        clip-rule="evenodd" />
-                </svg>
-                Add Patient
-            </button>
+            @php
+                $role = auth()->user()->role->value ?? auth()->user()->role ?? null;
+            @endphp
+
+            @if ($role === 'admin')
+                <button class="btn btn-sm btn-primary" onclick="addPatientModal.showModal()">
+                    <!-- Heroicon: User Plus -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M8 9a3 3 0 100-6 3 3 0 000 6zm5 2a5 5 0 10-10 0v3h10v-3zm3 1h2v2h-2v2h-2v-2h-2v-2h2V9h2v3z"
+                            clip-rule="evenodd" />
+                    </svg>
+                    Add Patient
+                </button>
+            @endif
+
         </div>
     </div>
 
@@ -75,16 +82,26 @@
                                     <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-36">
                                         <li>
                                             <a href="{{ route('admin.patients.show', $patient->id) }}"
-                                                class="btn btn-sm btn-ghost justify-start text-info">View History</a>
+                                                class="btn btn-sm btn-ghost justify-start text-info">
+                                                View History
+                                            </a>
                                         </li>
-                                        <li>
-                                            <button class="btn btn-sm btn-ghost justify-start text-warning btn-edit"
-                                                data-id="{{ $patient->id }}">Edit</button>
-                                        </li>
-                                        <li>
-                                            <button class="btn btn-sm btn-ghost justify-start text-error btn-delete"
-                                                data-id="{{ $patient->id }}">Delete</button>
-                                        </li>
+
+                                        @if ($role === 'admin')
+                                            <li>
+                                                <button class="btn btn-sm btn-ghost justify-start text-warning btn-edit"
+                                                    data-id="{{ $patient->id }}">
+                                                    Edit
+                                                </button>
+                                            </li>
+
+                                            <li>
+                                                <button class="btn btn-sm btn-ghost justify-start text-error btn-delete"
+                                                    data-id="{{ $patient->id }}">
+                                                    Delete
+                                                </button>
+                                            </li>
+                                        @endif
                                     </ul>
                                 </div>
                             </td>

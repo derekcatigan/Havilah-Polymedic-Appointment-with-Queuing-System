@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ManageDoctorController extends Controller
@@ -39,6 +40,7 @@ class ManageDoctorController extends Controller
     {
         $validated = $request->validate([
             // User Model
+            'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|min:11|max:11|unique:users,contact_number',
@@ -52,6 +54,12 @@ class ManageDoctorController extends Controller
         DB::beginTransaction();
 
         try {
+            $profilePicturePath = null;
+
+            if ($request->hasFile('profile_picture')) {
+                $profilePicturePath = $request->file('profile_picture')->store('doctor_profiles', 'public');
+            }
+
             $user = User::create([
                 'name' => Str::title($validated['name']),
                 'email' => $validated['email'],
@@ -63,6 +71,7 @@ class ManageDoctorController extends Controller
 
             $user->doctor()->create([
                 'specialty' => $validated['specialty'],
+                'profile_picture' => $profilePicturePath,
             ]);
 
             DB::commit();
@@ -86,39 +95,72 @@ class ManageDoctorController extends Controller
 
     public function update(Request $request, $id)
     {
-        $doctor = User::where('role', UserRole::Doctor)->with('doctor')->findOrFail($id);
+        $doctor = User::where('role', UserRole::Doctor)
+            ->with('doctor')
+            ->findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $doctor->id,
-            'phone' => 'required|min:11|max:11|unique:users,contact_number,' . $doctor->id,
-            'address'   => 'required|string|max:255',
-            'status'   => 'required|string',
-            'specialty'   => 'required|string',
-            'password'  => 'nullable|min:6',
+            'name'             => 'required|string|max:255',
+            'email'            => 'required|email|unique:users,email,' . $doctor->id,
+            'phone'            => 'required|min:11|max:11|unique:users,contact_number,' . $doctor->id,
+            'address'          => 'required|string|max:255',
+            'status'           => 'required|string',
+            'specialty'        => 'required|string',
+            'password'         => 'nullable|min:6',
+            'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
         ]);
+
         DB::beginTransaction();
         try {
-            $doctor->update([
-                'name' => Str::title($validated['name']),
-                'email' => $validated['email'],
-                'contact_number' => $validated['phone'],
-                'address' => Str::title($validated['address']),
-                'password' => Hash::make($validated['password'])
-            ]);
 
+            // Prepare user data
+            $userData = [
+                'name'            => Str::title($validated['name']),
+                'email'           => $validated['email'],
+                'contact_number'  => $validated['phone'],
+                'address'         => Str::title($validated['address']),
+            ];
+
+            // Handle password only if provided
+            if (!empty($validated['password'])) {
+                $userData['password'] = Hash::make($validated['password']);
+            }
+
+            // Handle profile picture upload
+            if ($request->hasFile('profile_picture')) {
+
+                // Delete old picture (stored in doctor_profiles)
+                if ($doctor->doctor->profile_picture) {
+                    Storage::disk('public')->delete($doctor->doctor->profile_picture);
+                }
+
+                // Store new file
+                $path = $request->file('profile_picture')->store('doctor_profiles', 'public');
+
+                // Save to doctor_info table
+                $doctor->doctor()->update([
+                    'profile_picture' => $path
+                ]);
+            }
+
+            // Update user table
+            $doctor->update($userData);
+
+            // Update doctor_info table
             $doctor->doctor()->update([
-                'status' => $validated['status'],
-                'specialty' => $validated['specialty']
+                'status'     => $validated['status'],
+                'specialty'  => $validated['specialty'],
             ]);
 
             DB::commit();
+
             return response()->json([
-                'message' => 'Update successfull!'
-            ], 201);
+                'message' => 'Update successful!'
+            ], 200);
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error('Something went wrong: ' . $e->getMessage());
+            Log::error('Update Doctor Error: ' . $e->getMessage());
+
             return response()->json([
                 'message' => 'Something went wrong. Please try again later.'
             ], 500);

@@ -32,39 +32,6 @@ class StaffQueueController extends Controller
         return view('staff.manage-queue', compact('queues', 'doctors', 'currentQueue'));
     }
 
-    // public function callNext(Request $request)
-    // {
-    //     $doctorId = $request->get('doctor');
-
-    //     $currentActive = Queue::where('doctor_user_id', $doctorId)
-    //         ->whereIn('queue_status', ['called', 'in_progress'])
-    //         ->whereDate('queue_date', today())
-    //         ->first();
-
-    //     if ($currentActive) {
-    //         return back()->with('error', "Patient {$currentActive->patient->name} is currently being served.");
-    //     }
-
-    //     $queue = Queue::where('doctor_user_id', $doctorId)
-    //         ->where('queue_status', 'waiting')
-    //         ->whereDate('queue_date', today())
-    //         ->orderBy('queue_number')
-    //         ->first();
-
-    //     if ($queue) {
-    //         $queue->update(['queue_status' => 'called']);
-
-    //         if (!str_ends_with($queue->patient->email, '@walkin.local')) {
-    //             Mail::to($queue->patient->email)
-    //                 ->send(new QueueStatusNotification($queue, 'It is your turn. Please proceed to the doctor.'));
-    //         }
-
-    //         return back()->with('success', "Patient {$queue->patient->name} called.");
-    //     }
-
-    //     return back()->with('error', 'No patients waiting in the queue.');
-    // }
-
     public function call(Queue $queue)
     {
         $currentActive = Queue::where('doctor_user_id', $queue->doctor_user_id)
@@ -85,7 +52,6 @@ class StaffQueueController extends Controller
 
         return back()->with('success', "Patient {$queue->patient->name} called.");
     }
-
 
     public function progress(Queue $queue)
     {

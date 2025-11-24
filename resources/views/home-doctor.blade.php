@@ -53,7 +53,14 @@
                 @foreach ($doctors as $doctor)
                     <div class="bg-white shadow rounded-lg border border-gray-200 p-5 flex flex-col justify-between">
                         <div>
-                            <h2 class="text-lg font-semibold text-gray-800">Dr. {{ $doctor->user->name }}</h2>
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                                    <img src="{{ $doctor->profile_picture ? asset('storage/' . $doctor->profile_picture) : asset('assets/images/default-avatar.png') }}"
+                                        alt="Profile Picture" class="w-full h-full object-cover">
+                                </div>
+                                <h2 class="text-lg font-semibold text-gray-800">Dr. {{ $doctor->user->name }}</h2>
+                            </div>
+
                             <p class="text-sm text-gray-500">
                                 <span class="font-medium">{{ Str::title($doctor->specialty) }}</span>
                             </p>

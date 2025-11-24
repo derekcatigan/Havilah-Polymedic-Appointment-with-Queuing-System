@@ -26,17 +26,6 @@ class UserSeed extends Seeder
             'password' => bcrypt('password'),
         ]);
 
-        // Doctor Demo Account
-        User::create([
-            'name' => 'Doctor Demo User',
-            'email' => 'doctor@email.com',
-            'role' => UserRole::Doctor,
-            'contact_number' => '09123456789',
-            'address' => 'Sogod, Southern Leyte',
-            'status' => 'available',
-            'password' => bcrypt('password'),
-        ]);
-
         // Staff Demo Account
         User::create([
             'name' => 'Staff Demo User',

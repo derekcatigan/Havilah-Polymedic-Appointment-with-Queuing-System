@@ -8,7 +8,7 @@
     </div>
     <div class="w-full flex justify-center">
         <div class="w-[500px] bg-white border border-gray-300 p-5 rounded-md shadow-lg">
-            <form id="createDoctorForm" autocomplete="off">
+            <form id="createDoctorForm" method="POST" autocomplete="off" enctype="multipart/form-data">
                 @csrf
                 <div class="w-full bg-cyan-200 p-3 border border-cyan-400 rounded-lg mb-3 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -17,6 +17,13 @@
                             d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
                     </svg>
                     <p class="text-sm">Please double check the information before submitting.</p>
+                </div>
+                <div class="w-full">
+                    <fieldset class="fieldset">
+                        <legend class="fieldset-legend">Profile Picture</legend>
+                        <input type="file" id="profile_picture" name="profile_picture"
+                            class="file-input file-input-bordered file-input-sm w-full" accept="image/*" />
+                    </fieldset>
                 </div>
                 <div class="w-full">
                     <fieldset class="fieldset">
@@ -94,7 +101,7 @@
             $('#createDoctorForm').on('submit', function (e) {
                 e.preventDefault();
 
-                let formData = $(this).serialize();
+                let formData = new FormData(this);
                 let $addBtn = $('#addBtn');
                 let $buttonText = $('#buttonText');
                 let $spinner = $('#spinner');
@@ -107,30 +114,33 @@
                     type: "POST",
                     url: "/admin/doctor/store",
                     data: formData,
+                    processData: false,
+                    contentType: false,
                     success: function (response) {
                         $.toast({
                             heading: 'Success',
                             icon: 'success',
                             text: response.message,
-                            showHideTransition: 'slide',
-                            stack: 3,
                             position: 'top-right',
-                        })
+                        });
                         window.location.href = "/admin/manage-doctor";
                     },
                     error: function (xhr) {
-                        let error = "Something went wrong. Please try again later.";
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            error = xhr.responseJSON.message
+                        if (xhr.status === 422) {
+                            let errors = xhr.responseJSON.errors;
+                            let errorText = "";
+                            $.each(errors, function (key, value) {
+                                errorText += value[0] + "<br>";
+                            });
+
+                            $.toast({
+                                heading: "Validation Error",
+                                icon: "error",
+                                text: errorText,
+                                position: 'top-right',
+                            });
+                            return;
                         }
-                        $.toast({
-                            heading: "Something went wrong.",
-                            icon: "error",
-                            text: error,
-                            showHideTransition: 'slide',
-                            stack: 3,
-                            position: 'top-right',
-                        });
                     },
                     complete: function () {
                         $addBtn.prop('disabled', false);

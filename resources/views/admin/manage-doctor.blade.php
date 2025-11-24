@@ -46,11 +46,16 @@
                         <tr class="font-medium border-b border-b-gray-300">
                             <td class="font-semibold text-center">{{ $index + 1 }}</td>
                             <td class="flex items-center gap-2">
-                                <div
-                                    class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 flex-shrink-0">
-                                    {{ strtoupper(substr($doctor->name, 0, 1)) }}
-                                </div>
-                                {{ $doctor->name }}
+                                @if($doctor->doctor?->profile_picture)
+                                    <img src="{{ asset('storage/' . $doctor->doctor->profile_picture) }}" alt="Profile Picture"
+                                        class="w-10 h-10 rounded-full object-cover flex-shrink-0">
+                                @else
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 flex-shrink-0">
+                                        {{ strtoupper(substr($doctor->name, 0, 1)) }}
+                                    </div>
+                                @endif
+                                <span>{{ $doctor->name }}</span>
                             </td>
                             <td>{{ $doctor->email }}</td>
                             <td>{{ Str::title($doctor->role->value) }}</td>

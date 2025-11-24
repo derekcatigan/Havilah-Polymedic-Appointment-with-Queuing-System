@@ -18,14 +18,6 @@
             <button type="submit" class="btn btn-primary">Filter</button>
         </form>
 
-        {{-- Call Next Patient --}}
-        {{-- <form method="POST" action="{{ route('staff.queue.callNext') }}">
-            @csrf
-            <button type="submit" class="btn btn-accent mb-4">
-                Call Next Patient
-            </button>
-        </form> --}}
-
         {{-- Current Queue --}}
         @if($currentQueue)
             <div class="alert alert-info shadow-lg mb-4">

@@ -65,15 +65,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/admin/ads', [ManageADSController::class, 'store'])->name('admin.ads.store');
         Route::delete('/admin/ads/{ad}', [ManageADSController::class, 'destroy'])->name('admin.ads.destroy');
 
-        // ManagePatientController
-        Route::get('/admin/manage-patient', [ManagePatientController::class, 'index'])->name('admin.manage.patient');
-        Route::post('/admin/patients', [ManagePatientController::class, 'store'])->name('admin.patients.store');
-        Route::get('/admin/patients/{patient}/edit', [ManagePatientController::class, 'edit'])->name('edit');
-        Route::put('/admin/patients/{patient}', [ManagePatientController::class, 'update'])->name('update');
-        Route::delete('/admin/patients/{patient}', [ManagePatientController::class, 'destroy'])->name('destroy');
-        Route::get('/admin/patients/{patient}', [ManagePatientController::class, 'show'])
-            ->name('admin.patients.show');
-
         // ManageServicesController
         Route::get('/admin/manage-services', [ManageServicesController::class, 'index'])->name('admin.manage.services');
         Route::get('/admin/create-services', [ManageServicesController::class, 'create'])->name('admin.services.create');
@@ -99,11 +90,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/doctor/my-appointments', [DoctorAppointmentController::class, 'index'])->name('doctor.appointment');
         Route::get('/doctor/appointments/{appointment}', [DoctorAppointmentController::class, 'show'])
             ->name('doctor.appointments.show');
-
-        // MyScheduleController
-        Route::get('/doctor/my-schedule', [MyScheduleController::class, 'index'])->name('schedule.index');
-        Route::post('/doctor/schedule', [MyScheduleController::class, 'store'])->name('doctor.schedule.store');
-        Route::delete('/doctor/schedule/{schedule}', [MyScheduleController::class, 'destroy'])->name('doctor.schedule.destroy');
     });
 
     // Staff Routes
@@ -133,11 +119,7 @@ Route::middleware('auth')->group(function () {
         // Call Next
         // Route::post('/staff/queue/call-next', [StaffQueueController::class, 'callNext'])->name('staff.queue.callNext');
 
-        // Individual Actions
-        Route::post('/staff/queue/{queue}/call', [StaffQueueController::class, 'call'])->name('staff.queue.call');
-        Route::post('/staff/queue/{queue}/progress', [StaffQueueController::class, 'progress'])->name('staff.queue.progress');
-        Route::post('/staff/queue/{queue}/complete', [StaffQueueController::class, 'complete'])->name('staff.queue.complete');
-        Route::post('/staff/queue/{queue}/skip', [StaffQueueController::class, 'skip'])->name('staff.queue.skip');
+
     });
 
     // Patient Routes
@@ -149,6 +131,31 @@ Route::middleware('auth')->group(function () {
             ->name('patient.appointments');
         Route::delete('/appointment/history/{id}', [AppointmentController::class, 'deleteHistory'])
             ->name('appointment.deleteHistory');
+    });
+
+    // Shared Routes For All Roles
+    Route::middleware('role:admin,staff,doctor')->group(function () {
+        // MyScheduleController
+        Route::get('/doctor/my-schedule', [MyScheduleController::class, 'index'])->name('schedule.index');
+        Route::post('/doctor/schedule', [MyScheduleController::class, 'store'])->name('doctor.schedule.store');
+        Route::delete('/doctor/schedule/{schedule}', [MyScheduleController::class, 'destroy'])->name('doctor.schedule.destroy');
+        Route::get('/doctor/schedule/history', [MyScheduleController::class, 'history'])->name('doctor.schedule.history');
+
+
+        // ManagePatientController
+        Route::get('/admin/manage-patient', [ManagePatientController::class, 'index'])->name('admin.manage.patient');
+        Route::post('/admin/patients', [ManagePatientController::class, 'store'])->name('admin.patients.store');
+        Route::get('/admin/patients/{patient}/edit', [ManagePatientController::class, 'edit'])->name('edit');
+        Route::put('/admin/patients/{patient}', [ManagePatientController::class, 'update'])->name('update');
+        Route::delete('/admin/patients/{patient}', [ManagePatientController::class, 'destroy'])->name('destroy');
+        Route::get('/admin/patients/{patient}', [ManagePatientController::class, 'show'])
+            ->name('admin.patients.show');
+
+        // Call Queue Individual Actions
+        Route::post('/staff/queue/{queue}/call', [StaffQueueController::class, 'call'])->name('staff.queue.call');
+        Route::post('/staff/queue/{queue}/progress', [StaffQueueController::class, 'progress'])->name('staff.queue.progress');
+        Route::post('/staff/queue/{queue}/complete', [StaffQueueController::class, 'complete'])->name('staff.queue.complete');
+        Route::post('/staff/queue/{queue}/skip', [StaffQueueController::class, 'skip'])->name('staff.queue.skip');
     });
 
     // AppointmentController Routes

@@ -71,14 +71,14 @@
                 {{-- Service Type Selection --}}
                 <div class="form-control w-full md:w-1/2">
                     <label class="label">
-                        <span class="label-text font-medium">Add Service Type</span>
+                        <span class="label-text font-medium">Examination List</span>
                     </label>
 
                     <form id="addServiceForm" method="POST"
                         action="{{ route('staff.appointments.addServiceType', $appointment->id) }}" class="flex gap-2">
                         @csrf
                         <select name="service_type_id" class="select select-bordered w-full" required>
-                            <option value="">-- Choose Service Type --</option>
+                            <option value="">-- Choose Examination Type --</option>
                             @foreach ($serviceTypes as $service)
                                 <option value="{{ $service->id }}">{{ $service->short_description }}</option>
                             @endforeach

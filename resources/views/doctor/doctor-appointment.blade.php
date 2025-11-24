@@ -31,6 +31,7 @@
                     <tr>
                         <th class="text-center"></th>
                         <th>Patient</th>
+                        <th>Address</th>
                         <th>Status</th>
                         <th class="text-center">Action</th>
                     </tr>
@@ -45,6 +46,9 @@
                                 <span class="text-sm text-gray-500">
                                     {{ $appointment->starts_at->format('M d, Y h:i A') }}
                                 </span>
+                            </td>
+                            <td>
+                                {{ $appointment->patient->address }}
                             </td>
                             <td>
                                 @if ($appointment->status === 'confirmed')
@@ -71,7 +75,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center">No appointments found</td>
+                            <td colspan="5" class="text-center">No appointments found</td>
                         </tr>
                     @endforelse
                 </tbody>
