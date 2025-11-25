@@ -98,7 +98,7 @@
                                                     $dayNum = date('j', strtotime($cdate));
                                                 @endphp
                                                 <div class="min-h-[120px] relative p-3 rounded-lg border flex flex-col justify-between cursor-pointer transition
-                                                                                                                                        {{ $disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white hover:shadow-md' }}"
+                                                                                                                                                                                                    {{ $disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white hover:shadow-md' }}"
                                                     data-date="{{ $cdate }}" data-disabled="{{ $disabled ? '1' : '0' }}">
                                                     <div class="flex items-start justify-between">
                                                         <div class="text-sm font-semibold">{{ $dayNum }}</div>
@@ -164,30 +164,36 @@
         (function () {
             const csrfToken = "{{ csrf_token() }}";
             const doctorId = "{{ $users->id }}";
-            let selectedDate = $('#starts_at').val() || null;
+            let selectedDate = null;
+
+            // Default appointment times (you can change this or make it dynamic)
+            const defaultStartTime = "09:00";
+            const defaultEndTime = "09:30";
 
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': csrfToken } });
 
+            // Select date
             $(document).on('click', '.select-date-btn', function () {
                 const date = $(this).data('date');
+
+                // Remove previous highlights
                 $('#patientCalendar [data-date]').removeClass('ring-2 ring-blue-300 bg-blue-50');
                 $(this).closest('[data-date]').addClass('ring-2 ring-blue-300 bg-blue-50');
 
-                $('#starts_at').val(date);
+                // Store selected date for payload
+                selectedDate = date;
 
-                // Format selected date to "Weekday, Month Day, Year"
+                // Format for display
                 const formattedDate = new Date(date).toLocaleDateString('en-US', {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
                 });
-
                 $('#selectedSlotLabel').text(formattedDate);
-                selectedDate = date;
             });
 
-
+            // Handle booking form submission
             $('#bookForm').on('submit', function (e) {
                 e.preventDefault();
 
@@ -201,9 +207,11 @@
                 $('#buttonText').addClass('hidden');
                 $('#spinner').removeClass('hidden');
 
+                // Prepare payload with proper Y-m-d H:i format
                 const payload = {
                     reason: $('#reason').val(),
-                    starts_at: selectedDate,
+                    starts_at: selectedDate + ' ' + defaultStartTime,
+                    ends_at: selectedDate + ' ' + defaultEndTime,
                     _token: csrfToken
                 };
 
@@ -222,6 +230,7 @@
                     });
             });
 
+            // Handle cancel booking
             $('#cancelForm').on('submit', function (e) {
                 e.preventDefault();
                 const id = $('#cancelBtn').data('id');
@@ -237,6 +246,7 @@
                     }
                 });
             });
+
         })();
     </script>
 @endsection
