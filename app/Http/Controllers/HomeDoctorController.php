@@ -37,6 +37,11 @@ class HomeDoctorController extends Controller
             ->latest()
             ->first();
 
-        return view('patient.book-appointment', compact('users', 'appointment'));
+        // Get all dates where doctor has a schedule
+        $schedules = $users->schedules()
+            ->pluck('date')
+            ->toArray();
+
+        return view('patient.book-appointment', compact('users', 'appointment', 'schedules'));
     }
 }

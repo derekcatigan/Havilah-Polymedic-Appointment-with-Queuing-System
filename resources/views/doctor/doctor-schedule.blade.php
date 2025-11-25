@@ -37,7 +37,7 @@
                 @endphp
 
                 <div class="day-cell relative border rounded-lg p-2 flex flex-col cursor-pointer hover:shadow-md transition duration-200
-                                                                    {{ $isPast ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'}}"
+                                                                                            {{ $isPast ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'}}"
                     data-date="{{ $date }}" data-disabled="{{ $isPast ? 'true' : 'false'}}" style="min-height:180px;">
                     <div class="text-sm font-semibold text-center mb-1 {{ $isPast ? 'text-gray-400' : 'text-gray-800'}}">
                         {{ date('d M', strtotime($date)) }}
@@ -53,7 +53,7 @@
                     </div>
 
                     @if($role === 'doctor')
-                        <div class="flex-1 flex flex-col gap-1 overflow-y-auto">
+                        <div class="flex-1 flex flex-col gap-1 overflow-y-auto max-h-28 pr-1">
                             @foreach($daySchedules as $schedule)
                                 <div
                                     class="flex items-center justify-between bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs shadow-sm">
@@ -167,9 +167,9 @@
                 slots.forEach(s => {
                     const id = `slot-${s.value.replace(':', '')}`;
                     container.append(`<label class="flex items-center gap-1 border p-1 rounded cursor-pointer">
-                                        <input type="checkbox" name="slots[]" value="${s.value}" id="${id}" class="checkbox">
-                                        <span class="text-xs">${s.label}</span>
-                                    </label>`);
+                                                    <input type="checkbox" name="slots[]" value="${s.value}" id="${id}" class="checkbox">
+                                                    <span class="text-xs">${s.label}</span>
+                                                </label>`);
                 });
             }
 
@@ -190,10 +190,10 @@
                             end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
 
                         const card = `
-                                <div class="flex justify-between items-center p-2 bg-white border rounded shadow-sm hover:shadow-md transition">
-                                    <div class="text-sm font-medium text-gray-700">${label}</div>
-                                    ${role !== 'doctor' ? `<div class="text-xs text-gray-500">${s.doctor_name}</div>` : ''}
-                                </div>`;
+                                            <div class="flex justify-between items-center p-2 bg-white border rounded shadow-sm hover:shadow-md transition">
+                                                <div class="text-sm font-medium text-gray-700">${label}</div>
+                                                ${role !== 'doctor' ? `<div class="text-xs text-gray-500">${s.doctor_name}</div>` : ''}
+                                            </div>`;
 
                         list.append(card);
                     });

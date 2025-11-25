@@ -34,7 +34,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="text-lg font-semibold">
-                            {{ $appointment->doctor->name }}
+                            Dr. {{ $appointment->doctor->name }}
                         </h3>
                         <p class="text-gray-600 text-sm">
                             {{ Str::title($appointment->doctor->doctor->specialty ?? 'N/A') }}
@@ -144,10 +144,10 @@
                     });
 
                     form.replaceWith(`
-                                                                                                            <span class="badge badge-error">
-                                                                                                                Cancelled
-                                                                                                            </span>
-                                                                                                        `);
+                                                                                                                <span class="badge badge-error">
+                                                                                                                    Cancelled
+                                                                                                                </span>
+                                                                                                            `);
                 },
                 error: function (xhr) {
                     $.toast({
