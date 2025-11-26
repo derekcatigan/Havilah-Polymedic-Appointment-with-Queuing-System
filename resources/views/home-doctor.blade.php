@@ -9,10 +9,11 @@
     @include('partials.header')
 
     <div class="flex min-h-screen bg-gray-50">
-        <!-- Sidebar Filters -->
-        <aside class="w-72 bg-white border-r border-r-gray-200 p-5">
-            <h3 class="text-lg font-semibold mb-4">Filter by Specialty</h3>
+        <!-- Sidebar Filters & Queue -->
+        <aside class="w-72 bg-white border-r border-gray-200 p-5 flex flex-col h-screen">
+            <!-- Filter by Specialty -->
             <div class="flex flex-col space-y-2">
+                <h3 class="text-lg font-semibold mb-4">Filter by Specialty</h3>
                 <a href="{{ route('home.doctor', ['specialty' => 'all']) }}"
                     class="btn btn-block text-xs p-5 {{ ($specialty ?? 'all') === 'all' ? 'btn-primary' : '' }}">
                     All
@@ -25,11 +26,70 @@
                     </a>
                 @endforeach
             </div>
+
+            <!-- Sidebar Queue Section -->
+            <div class="mt-auto space-y-4">
+
+                {{-- Patient's Own Queue --}}
+                @if($patientQueue)
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg shadow p-4">
+                        <h3 class="text-sm font-semibold text-blue-700 mb-2">Your Queue Today</h3>
+                        <div class="text-sm space-y-1">
+                            <div class="flex justify-between">
+                                <span>Doctor:</span>
+                                <span class="font-medium">Dr. {{ $patientQueue->doctor->name }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Queue #:</span>
+                                <span class="font-bold text-blue-800">{{ $patientQueue->queue_number }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>Status:</span>
+                                <span class="px-2 py-1 text-xs font-semibold rounded
+                                                {{ $patientQueue->queue_status === 'waiting' ? 'bg-gray-200 text-gray-800' : '' }}
+                                                {{ $patientQueue->queue_status === 'called' ? 'bg-blue-500 text-white' : '' }}
+                                                {{ $patientQueue->queue_status === 'in_progress' ? 'bg-yellow-400 text-white' : '' }}
+                                                {{ $patientQueue->queue_status === 'completed' ? 'bg-green-500 text-white' : '' }}
+                                                {{ $patientQueue->queue_status === 'skipped' ? 'bg-red-500 text-white' : '' }}
+                                            ">
+                                    {{ ucfirst(str_replace('_', ' ', $patientQueue->queue_status)) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Current Active Queue Numbers --}}
+                @if($currentQueues->count())
+                    <div class="bg-green-50 border border-green-200 rounded-lg shadow p-4">
+                        <h3 class="text-sm font-semibold text-green-700 mb-2">Currently Serving</h3>
+                        <ul class="space-y-2 text-sm">
+                            @foreach($currentQueues as $doctorId => $queues)
+                                @php
+                                    $queue = $queues->first();
+                                @endphp
+                                <li class="flex justify-between items-center p-2 bg-white rounded shadow-sm">
+                                    <span class="font-medium">Dr. {{ $queue->doctor->name }}</span>
+                                    <span class="flex items-center space-x-2">
+                                        <span class="font-bold text-green-700">{{ $queue->queue_number }}</span>
+                                        <span class="px-2 py-1 text-xs font-semibold rounded
+                                                                        {{ $queue->queue_status === 'called' ? 'bg-blue-500 text-white' : '' }}
+                                                                        {{ $queue->queue_status === 'in_progress' ? 'bg-yellow-400 text-white' : '' }}
+                                                                    ">
+                                            {{ ucfirst(str_replace('_', ' ', $queue->queue_status)) }}
+                                        </span>
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+            </div>
         </aside>
 
         <!-- Doctor Cards -->
         <main class="flex-1 p-6">
-            <section class="flex justify-center">
+            <section class="flex justify-center mb-6">
                 @php
                     $ads = \App\Models\Ad::where('status', 'active')
                         ->where('position', 'homepage')

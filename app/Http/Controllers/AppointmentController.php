@@ -37,18 +37,18 @@ class AppointmentController extends Controller
         }
 
         // Check for conflicting appointments
-        $conflict = Appointment::where('doctor_user_id', $doctorId)
-            ->where(function ($query) use ($validated) {
-                $query->whereBetween('starts_at', [$validated['starts_at'], $validated['ends_at']])
-                    ->orWhereBetween('ends_at', [$validated['starts_at'], $validated['ends_at']]);
-            })
-            ->exists();
+        // $conflict = Appointment::where('doctor_user_id', $doctorId)
+        //     ->where(function ($query) use ($validated) {
+        //         $query->whereBetween('starts_at', [$validated['starts_at'], $validated['ends_at']])
+        //             ->orWhereBetween('ends_at', [$validated['starts_at'], $validated['ends_at']]);
+        //     })
+        //     ->exists();
 
-        if ($conflict) {
-            return response()->json([
-                'message' => 'This time slot is already booked. Please choose another one.',
-            ], 409);
-        }
+        // if ($conflict) {
+        //     return response()->json([
+        //         'message' => 'This time slot is already booked. Please choose another one.',
+        //     ], 409);
+        // }
 
         // Convert time to proper timezone (Asia/Manila)
         $start = Carbon::createFromFormat('Y-m-d H:i', $validated['starts_at'], 'Asia/Manila');
