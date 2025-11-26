@@ -13,16 +13,22 @@ class MyScheduleController extends Controller
 {
     public function index()
     {
-        $schedules = DoctorSchedule::get();
         $user = Auth::user();
+        $role = $user->role->value ?? $user->role;
 
-        $doctors = [];
-        if (in_array($user->role->value ?? $user->role, ['admin', 'staff'])) {
+        if ($role === 'doctor') {
+            // Only fetch the logged-in doctor's schedules
+            $schedules = DoctorSchedule::where('doctor_user_id', $user->id)->get();
+            $doctors = [];
+        } else {
+            // Admin/staff see all schedules
+            $schedules = DoctorSchedule::get();
             $doctors = User::where('role', UserRole::Doctor)->get();
         }
 
         return view('doctor.doctor-schedule', compact('schedules', 'doctors', 'user'));
     }
+
 
     public function store(Request $request)
     {

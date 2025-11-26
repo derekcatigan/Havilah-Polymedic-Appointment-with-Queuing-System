@@ -46,12 +46,12 @@
                             <div class="flex justify-between items-center">
                                 <span>Status:</span>
                                 <span class="px-2 py-1 text-xs font-semibold rounded
-                                                {{ $patientQueue->queue_status === 'waiting' ? 'bg-gray-200 text-gray-800' : '' }}
-                                                {{ $patientQueue->queue_status === 'called' ? 'bg-blue-500 text-white' : '' }}
-                                                {{ $patientQueue->queue_status === 'in_progress' ? 'bg-yellow-400 text-white' : '' }}
-                                                {{ $patientQueue->queue_status === 'completed' ? 'bg-green-500 text-white' : '' }}
-                                                {{ $patientQueue->queue_status === 'skipped' ? 'bg-red-500 text-white' : '' }}
-                                            ">
+                                                                {{ $patientQueue->queue_status === 'waiting' ? 'bg-gray-200 text-gray-800' : '' }}
+                                                                {{ $patientQueue->queue_status === 'called' ? 'bg-blue-500 text-white' : '' }}
+                                                                {{ $patientQueue->queue_status === 'in_progress' ? 'bg-yellow-400 text-white' : '' }}
+                                                                {{ $patientQueue->queue_status === 'completed' ? 'bg-green-500 text-white' : '' }}
+                                                                {{ $patientQueue->queue_status === 'skipped' ? 'bg-red-500 text-white' : '' }}
+                                                            ">
                                     {{ ucfirst(str_replace('_', ' ', $patientQueue->queue_status)) }}
                                 </span>
                             </div>
@@ -73,9 +73,9 @@
                                     <span class="flex items-center space-x-2">
                                         <span class="font-bold text-green-700">{{ $queue->queue_number }}</span>
                                         <span class="px-2 py-1 text-xs font-semibold rounded
-                                                                        {{ $queue->queue_status === 'called' ? 'bg-blue-500 text-white' : '' }}
-                                                                        {{ $queue->queue_status === 'in_progress' ? 'bg-yellow-400 text-white' : '' }}
-                                                                    ">
+                                                                                                {{ $queue->queue_status === 'called' ? 'bg-blue-500 text-white' : '' }}
+                                                                                                {{ $queue->queue_status === 'in_progress' ? 'bg-yellow-400 text-white' : '' }}
+                                                                                            ">
                                             {{ ucfirst(str_replace('_', ' ', $queue->queue_status)) }}
                                         </span>
                                     </span>
@@ -114,10 +114,22 @@
                     <div class="bg-white shadow rounded-lg border border-gray-200 p-5 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                                    <img src="{{ $doctor->profile_picture ? asset('storage/' . $doctor->profile_picture) : asset('assets/images/default-avatar.png') }}"
-                                        alt="Profile Picture" class="w-full h-full object-cover">
+                                <div
+                                    class="w-12 h-12 rounded-full flex-shrink-0 overflow-hidden bg-gray-200 flex items-center justify-center text-white text-sm font-semibold">
+                                    @if ($doctor->profile_picture)
+                                        <img src="{{ asset('storage/' . $doctor->profile_picture) }}" alt="Profile Picture"
+                                            class="w-full h-full object-cover">
+                                    @else
+                                        @php
+                                            $name = $doctor->user->name;
+                                            $initials = collect(explode(' ', $name))
+                                                ->map(fn($part) => strtoupper(substr($part, 0, 1)))
+                                                ->join('');
+                                        @endphp
+                                        <span class="text-gray-700">{{ $initials }}</span>
+                                    @endif
                                 </div>
+
                                 <h2 class="text-lg font-semibold text-gray-800">Dr. {{ $doctor->user->name }}</h2>
                             </div>
 

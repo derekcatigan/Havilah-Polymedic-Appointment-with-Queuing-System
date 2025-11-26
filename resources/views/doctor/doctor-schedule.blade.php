@@ -37,7 +37,7 @@
                 @endphp
 
                 <div class="day-cell relative border rounded-lg p-2 flex flex-col cursor-pointer hover:shadow-md transition duration-200
-                                                                                            {{ $isPast ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'}}"
+                                                                                                                                    {{ $isPast ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'}}"
                     data-date="{{ $date }}" data-disabled="{{ $isPast ? 'true' : 'false'}}" style="min-height:180px;">
                     <div class="text-sm font-semibold text-center mb-1 {{ $isPast ? 'text-gray-400' : 'text-gray-800'}}">
                         {{ date('d M', strtotime($date)) }}
@@ -144,18 +144,25 @@
             let formToDelete = null;
             const role = "{{ $role }}";
 
+            /** ----------------------------------------
+             *  TIME SLOT GENERATION
+             ---------------------------------------- */
             function generateTimeSlots(startHour, endHour) {
                 const slots = [];
                 const today = new Date();
                 let start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), startHour, 0, 0);
                 let end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), endHour, 0, 0);
+
                 while (start < end) {
                     const slotStart = start.toTimeString().slice(0, 5);
                     const slotEndDate = new Date(start.getTime() + 30 * 60000);
                     const slotEnd = slotEndDate.toTimeString().slice(0, 5);
+
                     const labelStart = start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
                     const labelEnd = slotEndDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+
                     slots.push({ value: `${slotStart}-${slotEnd}`, label: `${labelStart} - ${labelEnd}` });
+
                     start = slotEndDate;
                 }
                 return slots;
@@ -166,18 +173,25 @@
                 container.empty();
                 slots.forEach(s => {
                     const id = `slot-${s.value.replace(':', '')}`;
-                    container.append(`<label class="flex items-center gap-1 border p-1 rounded cursor-pointer">
-                                                    <input type="checkbox" name="slots[]" value="${s.value}" id="${id}" class="checkbox">
-                                                    <span class="text-xs">${s.label}</span>
-                                                </label>`);
+                    container.append(`
+                                <label class="flex items-center gap-1 border p-1 rounded cursor-pointer">
+                                    <input type="checkbox" name="slots[]" value="${s.value}" id="${id}" class="checkbox">
+                                    <span class="text-xs">${s.label}</span>
+                                </label>
+                            `);
                 });
             }
 
+            /** ----------------------------------------
+             *  LOAD HISTORY
+             ---------------------------------------- */
             function loadScheduleHistory(date, doctorId) {
                 if (!doctorId) return;
+
                 $.get("{{ route('doctor.schedule.history') }}", { date, doctor_user_id: doctorId }, function (res) {
                     const list = $('#historyList');
                     list.empty();
+
                     if (res.length === 0) {
                         list.append('<div class="text-gray-500 text-sm">No schedules found</div>');
                         return;
@@ -186,96 +200,173 @@
                     res.forEach(s => {
                         const start = new Date('1970-01-01T' + s.start_time);
                         const end = new Date('1970-01-01T' + s.end_time);
-                        const label = start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }) + ' - ' +
+
+                        const label =
+                            start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }) +
+                            ' - ' +
                             end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
 
-                        const card = `
-                                            <div class="flex justify-between items-center p-2 bg-white border rounded shadow-sm hover:shadow-md transition">
-                                                <div class="text-sm font-medium text-gray-700">${label}</div>
-                                                ${role !== 'doctor' ? `<div class="text-xs text-gray-500">${s.doctor_name}</div>` : ''}
-                                            </div>`;
-
-                        list.append(card);
+                        list.append(`
+                                    <div class="flex justify-between items-center p-2 bg-white border rounded shadow-sm hover:shadow-md transition">
+                                        <div class="text-sm font-medium text-gray-700">${label}</div>
+                                        ${role !== 'doctor'
+                                ? `<div class="text-xs text-gray-500">${s.doctor_name}</div>`
+                                : ''}
+                                    </div>
+                                `);
                     });
                 });
             }
 
-            // Open modal
-            $('.day-cell').on('click', function () {
-                if ($(this).data('disabled')) return;
-                const date = $(this).data('date');
-                $('#scheduleDate').val(date);
+
+            /** ----------------------------------------
+             *  FIX: PREVENT BUBBLING WHEN CLICKING DELETE
+             ---------------------------------------- */
+
+            // Clicking the X button
+            $(document).on("click", ".delete-btn", function (e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();  // ⛔ FULL STOP — NOTHING BUBBLES
+                e.stopPropagation();
+
+                formToDelete = $(this).closest("form");
+                $("#deleteScheduleModal").addClass("modal-open");
+            });
+
+            // Clicking inside the delete form itself
+            $(document).on("click", ".delete-schedule-form", function (e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                e.stopPropagation();
+            });
+
+
+            /** ----------------------------------------
+             *  DAY CELL CLICK — OPEN ADD SCHEDULE MODAL
+             ---------------------------------------- */
+            $(".day-cell").on("click", function (e) {
+                // Make sure delete click NEVER triggers this
+                if ($(e.target).closest(".delete-btn").length) return;
+                if ($(e.target).closest(".delete-schedule-form").length) return;
+
+                if ($(this).data("disabled")) return;
+
+                const date = $(this).data("date");
+                $("#scheduleDate").val(date);
 
                 renderTimeSlots(generateTimeSlots(0, 12));
 
-                if (role === 'admin' || role === 'staff') {
-                    const doctorId = $('select[name="doctor_user_id"]').val();
-                    if (doctorId) loadScheduleHistory(date, doctorId);
+                const doctorId = role === "doctor"
+                    ? "{{ $user->id }}"
+                    : $('select[name="doctor_user_id"]').val();
+
+                if (doctorId) {
+                    loadScheduleHistory(date, doctorId);
                 }
 
-                $('#addScheduleModal').addClass('modal-open');
+
+                $("#addScheduleModal").addClass("modal-open");
             });
 
-            // Radio tabs listener
-            $('input[name="schedule_tabs"]').on('change', function () {
-                if ($('#tabHistory').is(':checked')) {
-                    const date = $('#scheduleDate').val();
-                    const doctorId = role === 'doctor' ? "{{ $user->id }}" : $('select[name="doctor_user_id"]').val();
+
+            /** ----------------------------------------
+             *  TABS CHANGE (HISTORY/ADD)
+             ---------------------------------------- */
+            $('input[name="schedule_tabs"]').on("change", function () {
+                if ($("#tabHistory").is(":checked")) {
+                    const date = $("#scheduleDate").val();
+                    const doctorId = role === "doctor" ? "{{ $user->id }}" : $('select[name="doctor_user_id"]').val();
                     if (doctorId) loadScheduleHistory(date, doctorId);
                 }
             });
 
-            // AM/PM buttons
-            $(document).on('click', '#btnAM', () => renderTimeSlots(generateTimeSlots(0, 12)));
-            $(document).on('click', '#btnPM', () => renderTimeSlots(generateTimeSlots(12, 24)));
+            /** AM/PM buttons **/
+            $(document).on("click", "#btnAM", () =>
+                renderTimeSlots(generateTimeSlots(0, 12))
+            );
+            $(document).on("click", "#btnPM", () =>
+                renderTimeSlots(generateTimeSlots(12, 24))
+            );
 
-            // Doctor select change reload
-            $(document).on('change', 'select[name="doctor_user_id"]', function () {
+            /** Doctor dropdown change **/
+            $(document).on("change", 'select[name="doctor_user_id"]', function () {
                 const doctorId = $(this).val();
-                const date = $('#scheduleDate').val();
+                const date = $("#scheduleDate").val();
                 if (doctorId) loadScheduleHistory(date, doctorId);
             });
 
-            // Submit slots
-            $('#modalScheduleForm').on('submit', function (e) {
+
+            /** ----------------------------------------
+             *  SUBMIT ADD SLOT FORM
+             ---------------------------------------- */
+            $("#modalScheduleForm").on("submit", function (e) {
                 e.preventDefault();
-                const slots = $('input[name="slots[]"]:checked').map(function () { return $(this).val(); }).get();
-                if (slots.length === 0) { alert('Please select at least one time slot'); return; }
+
+                const slots = $('input[name="slots[]"]:checked')
+                    .map(function () {
+                        return $(this).val();
+                    })
+                    .get();
+
+                if (slots.length === 0) {
+                    alert("Please select at least one time slot");
+                    return;
+                }
 
                 const formData = $(this).serializeArray();
+
                 slots.forEach(s => {
-                    const [start, end] = s.split('-');
-                    formData.push({ name: 'start_time[]', value: start });
-                    formData.push({ name: 'end_time[]', value: end });
+                    const [start, end] = s.split("-");
+                    formData.push({ name: "start_time[]", value: start });
+                    formData.push({ name: "end_time[]", value: end });
                 });
 
                 $.ajax({
                     url: "{{ route('doctor.schedule.store') }}",
                     method: "POST",
                     data: formData,
-                    success: function (res) { $.toast({ heading: 'Success', icon: 'success', text: res.message }); location.reload(); },
-                    error: function (xhr) { $.toast({ heading: 'Error', icon: 'error', text: xhr.responseJSON?.message || 'Something went wrong' }); }
+                    success: function (res) {
+                        $.toast({ heading: "Success", icon: "success", text: res.message });
+                        location.reload();
+                    },
+                    error: function (xhr) {
+                        $.toast({
+                            heading: "Error",
+                            icon: "error",
+                            text: xhr.responseJSON?.message || "Something went wrong",
+                        });
+                    },
                 });
             });
 
-            // Delete schedule
-            $(document).on('click', '.delete-btn', function (e) {
-                e.stopPropagation();
-                formToDelete = $(this).closest('form');
-                $('#deleteScheduleModal').addClass('modal-open');
+
+            /** ----------------------------------------
+             *  DELETE CONFIRMATION
+             ---------------------------------------- */
+            $("#cancelDeleteBtn").on("click", function () {
+                formToDelete = null;
+                $("#deleteScheduleModal").removeClass("modal-open");
             });
-            $('#cancelDeleteBtn').on('click', function () { formToDelete = null; $('#deleteScheduleModal').removeClass('modal-open'); });
-            $('#confirmDeleteBtn').on('click', function () {
+
+            $("#confirmDeleteBtn").on("click", function () {
                 if (!formToDelete) return;
-                const url = formToDelete.attr('action');
+
                 $.ajax({
-                    url, method: "POST",
+                    url: formToDelete.attr("action"),
+                    method: "POST",
                     data: { _token: "{{ csrf_token() }}", _method: "DELETE" },
-                    success: function (res) { if (res.success) location.reload(); },
-                    error: function () { alert("Error deleting schedule."); }
+                    success: function (res) {
+                        if (res.success) location.reload();
+                    },
+                    error: function () {
+                        alert("Error deleting schedule.");
+                    },
                 });
-                $('#deleteScheduleModal').removeClass('modal-open'); formToDelete = null;
+
+                $("#deleteScheduleModal").removeClass("modal-open");
+                formToDelete = null;
             });
+
         });
     </script>
 @endsection
