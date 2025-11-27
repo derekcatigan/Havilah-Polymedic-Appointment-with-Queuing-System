@@ -131,6 +131,8 @@ Route::middleware('auth')->group(function () {
             ->name('patient.appointments');
         Route::delete('/appointment/history/{id}', [AppointmentController::class, 'deleteHistory'])
             ->name('appointment.deleteHistory');
+
+        Route::get('/queue/count', [AppointmentController::class, 'queueCount']);
     });
 
     // Shared Routes For All Roles
@@ -157,6 +159,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/staff/queue/{queue}/progress', [StaffQueueController::class, 'progress'])->name('staff.queue.progress');
         Route::post('/staff/queue/{queue}/complete', [StaffQueueController::class, 'complete'])->name('staff.queue.complete');
         Route::post('/staff/queue/{queue}/skip', [StaffQueueController::class, 'skip'])->name('staff.queue.skip');
+        Route::post('/queue/{queue}/cancel', [StaffQueueController::class, 'cancel'])
+            ->name('staff.queue.cancel');
     });
 
     // AppointmentController Routes

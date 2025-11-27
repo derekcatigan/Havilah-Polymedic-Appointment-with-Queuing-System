@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Models\Queue;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
@@ -128,5 +129,39 @@ class AppointmentController extends Controller
                 'message' => 'Something went wrong. Please try again later.'
             ], 500);
         }
+    }
+
+    // public function queueCount(Request $request)
+    // {
+    //     $request->validate([
+    //         'doctor_id' => 'required|exists:users,id',
+    //         'date' => 'required|date',
+    //     ]);
+
+    //     $count = Queue::where('doctor_user_id', $request->doctor_id)
+    //         ->where('queue_date', $request->date)
+    //         ->where('queue_status', 'confirmed')
+    //         ->count();
+
+    //     return response()->json([
+    //         'count' => $count
+    //     ]);
+    // }
+
+    public function queueCount(Request $request)
+    {
+        $request->validate([
+            'doctor_id' => 'required|exists:users,id',
+            'date' => 'required|date',
+        ]);
+
+        $count = Appointment::where('doctor_user_id', $request->doctor_id)
+            ->whereDate('starts_at', $request->date)
+            ->where('status', 'confirmed')
+            ->count();
+
+        return response()->json([
+            'count' => $count
+        ]);
     }
 }

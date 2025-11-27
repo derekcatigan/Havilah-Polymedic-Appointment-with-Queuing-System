@@ -86,4 +86,26 @@ class StaffQueueController extends Controller
 
         return back()->with('success', "Patient {$queue->patient->name} skipped.");
     }
+
+    public function cancel(Queue $queue)
+    {
+        // Update queue status
+        $queue->update(['queue_status' => 'cancelled']);
+
+        // If the queue is linked to an appointment, cancel that appointment too
+        if ($queue->appointment) {
+            $queue->appointment->update([
+                'status' => 'cancelled',
+                'ends_at' => now('Asia/Manila'),
+            ]);
+        }
+
+        // Optional: email notification
+        if (!str_ends_with($queue->patient->email, '@walkin.local')) {
+            Mail::to($queue->patient->email)
+                ->send(new QueueStatusNotification($queue, 'Your appointment has been cancelled by the staff.'));
+        }
+
+        return back()->with('success', "Patient {$queue->patient->name}'s appointment has been cancelled.");
+    }
 }

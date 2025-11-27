@@ -54,6 +54,7 @@
                             'in_progress' => 'bg-yellow-200 text-yellow-800',
                             'completed' => 'bg-green-200 text-green-800',
                             'skipped' => 'bg-red-200 text-red-800',
+                            'cancelled' => 'bg-gray-300 text-gray-700',
                         ];
                     @endphp
 
@@ -93,6 +94,16 @@
                                     <button type="submit"
                                         class="btn btn-sm bg-red-500 hover:bg-red-600 text-white transition">Skip</button>
                                 </form>
+
+                                {{-- Cancel --}}
+                                <form method="POST" action="{{ route('staff.queue.cancel', $queue) }}">
+                                    @csrf
+                                    <button type="submit"
+                                        class="btn btn-sm bg-gray-600 hover:bg-gray-700 text-white transition">
+                                        Cancel
+                                    </button>
+                                </form>
+
                             </td>
                         </tr>
                     @empty

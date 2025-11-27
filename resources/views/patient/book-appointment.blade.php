@@ -78,6 +78,12 @@
                                     <div id="selectedSlotLabel" class="text-sm font-medium text-blue-600">None</div>
                                 </div>
 
+                                <div class="mt-2">
+                                    <span class="text-sm text-gray-600">Active Queues:</span>
+                                    <span class="text-sm font-semibold text-red-600" id="queueCountLabel">0</span>
+                                </div>
+
+
                                 <input type="hidden" id="starts_at" name="starts_at" required>
 
                                 <fieldset class="fieldset mt-3">
@@ -143,23 +149,23 @@
                     const disabled = isPast || !hasSchedule;
 
                     const dayHtml = `
-                            <div class="min-h-[120px] relative p-3 rounded-lg border flex flex-col justify-between cursor-pointer transition
-                                ${disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white hover:shadow-md'}"
-                                data-date="${dateStr}" data-disabled="${disabled ? '1' : '0'}">
-                                <div class="flex items-start justify-between">
-                                    <div class="text-sm font-semibold">${d}</div>
-                                    ${isPast ? '<div class="text-xs text-gray-400">Past</div>' : (!hasSchedule ? '<div class="text-xs text-red-500">No Schedule</div>' : '')}
-                                </div>
-                                <div class="mt-2">
-                                    <span class="text-xs font-medium status-label ${disabled ? 'text-red-500' : 'text-green-600'}">
-                                        ${disabled ? (isPast ? 'Unavailable' : 'No Schedule') : 'Available'}
-                                    </span>
-                                </div>
-                                <div class="mt-3 text-center">
-                                    ${!disabled ? `<button type="button" class="select-date-btn btn btn-sm btn-outline w-full text-xs" data-date="${dateStr}">Select date</button>` : ''}
-                                </div>
-                            </div>
-                        `;
+                                        <div class="min-h-[120px] relative p-3 rounded-lg border flex flex-col justify-between cursor-pointer transition
+                                            ${disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white hover:shadow-md'}"
+                                            data-date="${dateStr}" data-disabled="${disabled ? '1' : '0'}">
+                                            <div class="flex items-start justify-between">
+                                                <div class="text-sm font-semibold">${d}</div>
+                                                ${isPast ? '<div class="text-xs text-gray-400">Past</div>' : (!hasSchedule ? '<div class="text-xs text-red-500">No Schedule</div>' : '')}
+                                            </div>
+                                            <div class="mt-2">
+                                                <span class="text-xs font-medium status-label ${disabled ? 'text-red-500' : 'text-green-600'}">
+                                                    ${disabled ? (isPast ? 'Unavailable' : 'No Schedule') : 'Available'}
+                                                </span>
+                                            </div>
+                                            <div class="mt-3 text-center">
+                                                ${!disabled ? `<button type="button" class="select-date-btn btn btn-sm btn-outline w-full text-xs" data-date="${dateStr}">Select date</button>` : ''}
+                                            </div>
+                                        </div>
+                                    `;
                     calendarEl.append(dayHtml);
                 }
             }
@@ -196,7 +202,20 @@
                     day: 'numeric'
                 });
                 $('#selectedSlotLabel').text(formattedDate);
+
+                // 🔵 NEW FEATURE: Load queue count via AJAX
+                $.get('/queue/count', {
+                    doctor_id: doctorId,
+                    date: date
+                })
+                    .done(res => {
+                        $('#queueCountLabel').text(res.count);
+                    })
+                    .fail(() => {
+                        $('#queueCountLabel').text('0');
+                    });
             });
+
 
             // Booking submission
             $('#bookForm').on('submit', function (e) {
