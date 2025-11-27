@@ -32,10 +32,16 @@ class HomeDoctorController extends Controller
             ->latest()
             ->first();
 
-        // Get the current active queue number per doctor (status called or in_progress)
+        // Patient's doctor for today (if any)
+        $patientDoctorId = $patientQueue ? $patientQueue->doctor_user_id : null;
+
+        // Get only the active queue for THAT doctor
         $currentQueues = Queue::with('doctor')
             ->whereDate('queue_date', today())
             ->whereIn('queue_status', ['called', 'in_progress'])
+            ->when($patientDoctorId, function ($q) use ($patientDoctorId) {
+                return $q->where('doctor_user_id', $patientDoctorId);
+            })
             ->get()
             ->groupBy('doctor_user_id');
 
