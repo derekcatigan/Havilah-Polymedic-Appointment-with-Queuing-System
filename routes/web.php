@@ -139,7 +139,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/doctor/my-schedule', [MyScheduleController::class, 'index'])->name('schedule.index');
         Route::post('/doctor/schedule', [MyScheduleController::class, 'store'])->name('doctor.schedule.store');
         Route::delete('/doctor/schedule/{schedule}', [MyScheduleController::class, 'destroy'])->name('doctor.schedule.destroy');
-        Route::get('/doctor/schedule/history', [MyScheduleController::class, 'history'])->name('doctor.schedule.history');
+        Route::get('doctor/schedule/history', [MyScheduleController::class, 'history'])->name('doctor.schedule.history');
+        Route::get('/schedule/month', [MyScheduleController::class, 'month'])->name('doctor.schedule.month');
 
 
         // ManagePatientController

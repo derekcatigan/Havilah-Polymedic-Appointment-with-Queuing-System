@@ -6,131 +6,97 @@
         <h1 class="text-2xl font-bold mb-6 text-blue-700">My Schedule</h1>
 
         @php
-            $startOfMonth = new DateTime('first day of this month');
-            $endOfMonth = new DateTime('last day of this month');
-            $dates = [];
-            for ($d = clone $startOfMonth; $d <= $endOfMonth; $d->modify('+1 day')) {
-                $dates[] = $d->format('Y-m-d');
-            }
-            $dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             $role = $user->role->value ?? $user->role;
+            $tabGroup = 'my_tabs_schedule_' . uniqid();
+            $currentYear = date('Y');
+            $currentMonth = date('m');
         @endphp
 
-        <!-- Calendar Header -->
-        <div class="flex justify-between items-center mb-4 px-2">
-            <h3 class="text-lg font-semibold text-gray-700">{{ date('F Y') }}</h3>
-            <small class="text-gray-500">Click a date to add schedule</small>
+        <!-- Month navigation -->
+        <div class="flex justify-between items-center mb-2 px-2">
+            <button class="btn btn-sm" id="prevMonthBtn">← Previous</button>
+            <h3 class="text-lg font-semibold text-gray-700" id="currentMonthLabel">{{ date('F Y') }}</h3>
+            <button class="btn btn-sm" id="nextMonthBtn">Next →</button>
         </div>
+        <small class="text-gray-500 mb-3 block">Click a date to add schedule (AM / PM)</small>
 
-        <!-- Calendar Grid -->
-        <div class="grid grid-cols-7 gap-3">
-            @foreach($dayNames as $dow)
-                <div class="text-center font-semibold text-gray-600 py-1">{{ $dow }}</div>
-            @endforeach
-
-            @foreach($dates as $date)
-                @php
-                    $isPast = strtotime($date) < strtotime(date('Y-m-d'));
-                    $daySchedules = $schedules->where('date', $date)
-                        ->when($role === 'doctor', fn($q) => $q)
-                        ->sortBy('start_time')->values();
-                @endphp
-
-                <div class="day-cell relative border rounded-lg p-2 flex flex-col cursor-pointer hover:shadow-md transition duration-200
-                                                                                                                                    {{ $isPast ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'}}"
-                    data-date="{{ $date }}" data-disabled="{{ $isPast ? 'true' : 'false'}}" style="min-height:180px;">
-                    <div class="text-sm font-semibold text-center mb-1 {{ $isPast ? 'text-gray-400' : 'text-gray-800'}}">
-                        {{ date('d M', strtotime($date)) }}
-                    </div>
-                    <div class="text-center text-xs mb-1">
-                        @if($isPast)
-                            <span class="text-red-500 font-medium">Unavailable</span>
-                        @elseif(count($daySchedules))
-                            <span class="text-green-600 font-medium">Available</span>
-                        @else
-                            <span class="text-yellow-500 font-medium">No Slots</span>
-                        @endif
-                    </div>
-
-                    @if($role === 'doctor')
-                        <div class="flex-1 flex flex-col gap-1 overflow-y-auto max-h-28 pr-1">
-                            @foreach($daySchedules as $schedule)
-                                <div
-                                    class="flex items-center justify-between bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs shadow-sm">
-                                    <span>{{ date('g:i A', strtotime($schedule->start_time)) }} -
-                                        {{ date('g:i A', strtotime($schedule->end_time)) }}</span>
-                                    @if(!$isPast)
-                                        <form method="POST" action="{{ route('doctor.schedule.destroy', $schedule->id)}}"
-                                            class="delete-schedule-form flex items-center">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="button" class="text-red-500 hover:text-red-700 delete-btn ml-1">✕</button>
-                                        </form>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-            @endforeach
+        <!-- Calendar grid -->
+        <div id="calendarGrid" class="grid grid-cols-7 gap-3">
+            {{-- Dynamic calendar will load here --}}
         </div>
     </div>
 
-    <!-- Add Schedule Modal -->
+    {{-- Add / History Schedule Modal --}}
     <div id="addScheduleModal" class="modal">
-        <div class="modal-box relative max-h-[90vh] overflow-y-auto">
-            <h3 class="font-bold text-lg mb-2">Add Schedule</h3>
-            <form id="modalScheduleForm">
-                @csrf
-                <input type="hidden" name="date" id="scheduleDate">
+        <div class="modal-box relative max-h-[85vh] overflow-y-auto">
+            <h3 class="font-bold text-lg mb-3">Manage Schedule</h3>
 
-                @if(in_array($role, ['admin', 'staff']))
-                    <label class="block mt-2 text-sm font-medium">Doctor</label>
-                    <select name="doctor_user_id" class="select w-full">
-                        @foreach($doctors as $doctor)
-                            <option value="{{ $doctor->id }}">{{ $doctor->name }}</option>
-                        @endforeach
-                    </select>
-                @endif
+            <div class="tabs tabs-box">
+                <input type="radio" name="{{ $tabGroup }}" class="tab" id="{{ $tabGroup }}_add" checked aria-label="Add" />
+                <div class="tab-content bg-base-100 border-base-300 p-4" id="{{ $tabGroup }}_add_content">
+                    <form id="modalScheduleForm">
+                        @csrf
+                        <input type="hidden" name="date" id="scheduleDate">
 
-                <!-- DaisyUI Radio Tabs -->
-                <div class="tabs tabs-lift mt-4">
-                    <!-- Add Slots Tab -->
-                    <input type="radio" name="schedule_tabs" id="tabSlots" class="tab" checked aria-label="Add Slots">
-                    <div class="tab-content bg-base-100 border-base-300 p-4" id="slotsTabContent">
-                        <div class="flex justify-center gap-2 mb-3" id="amPmButtons">
-                            <button type="button" id="btnAM" class="btn btn-outline btn-primary">AM Slots</button>
-                            <button type="button" id="btnPM" class="btn btn-outline btn-primary">PM Slots</button>
+                        @if(in_array($role, ['admin', 'staff']))
+                            <label class="block text-sm font-medium mb-2">Select Doctor</label>
+                            <select name="doctor_user_id" id="selectDoctorForModal" class="select w-full mb-3">
+                                <option value="">-- Select doctor --</option>
+                                @foreach($doctors as $doctor)
+                                    <option value="{{ $doctor->id }}">{{ $doctor->name }}</option>
+                                @endforeach
+                            </select>
+                        @endif
+
+                        <label class="flex items-center gap-2 mb-2">
+                            <input type="checkbox" class="checkbox" name="am" value="1">
+                            <span>Morning (8 AM – 12 PM)</span>
+                        </label>
+
+                        <label class="flex items-center gap-2 mb-4">
+                            <input type="checkbox" class="checkbox" name="pm" value="1">
+                            <span>Afternoon (1 PM – 5 PM)</span>
+                        </label>
+
+                        <div class="flex justify-end gap-2">
+                            <button type="button" class="btn"
+                                onclick="$('#addScheduleModal').removeClass('modal-open')">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save</button>
                         </div>
-                        <div id="timeSlots" class="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto"></div>
-                    </div>
-
-                    <!-- Schedule History Tab -->
-                    <input type="radio" name="schedule_tabs" id="tabHistory" class="tab" aria-label="Schedule History">
-                    <div class="tab-content bg-base-100 border-base-300 p-4 max-h-64 overflow-y-auto"
-                        id="historyTabContent">
-                        <h4 class="font-semibold mb-3 text-gray-700">Existing Schedule</h4>
-                        <div id="historyList" class="flex flex-col gap-2">
-                            <!-- JS will append schedule cards here -->
-                        </div>
-                    </div>
+                    </form>
                 </div>
 
-                <div class="modal-action mt-3">
-                    <button type="button" class="btn"
-                        onclick="$('#addScheduleModal').removeClass('modal-open')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Selected Slots</button>
+                <input type="radio" name="{{ $tabGroup }}" class="tab" id="{{ $tabGroup }}_history" aria-label="History" />
+                <div class="tab-content bg-base-100 border-base-300 p-4" id="{{ $tabGroup }}_history_content">
+                    <div class="mb-3">
+                        @if(in_array($role, ['admin', 'staff']))
+                            <label class="block text-sm font-medium mb-2">Choose doctor to view history</label>
+                            <select id="historyDoctorSelect" class="select w-full mb-3">
+                                <option value="">-- Select doctor --</option>
+                                @foreach($doctors as $doctor)
+                                    <option value="{{ $doctor->id }}">{{ $doctor->name }}</option>
+                                @endforeach
+                            </select>
+                        @else
+                            <div class="text-sm text-gray-600 mb-2">Showing your schedule history for the selected date.</div>
+                        @endif
+                        <div id="historyList" class="flex flex-col gap-2"></div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" class="btn"
+                            onclick="document.getElementById('{{ $tabGroup }}_add').checked = true;">Back to Add</button>
+                    </div>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
+    {{-- Delete confirmation modal --}}
     <div id="deleteScheduleModal" class="modal">
-        <div class="modal-box relative">
-            <h3 class="font-bold text-lg text-red-600">Delete Schedule</h3>
-            <p class="py-4">Are you sure you want to delete this schedule?</p>
-            <div class="modal-action">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg text-red-600">Delete Schedule?</h3>
+            <p class="mb-4">This will permanently remove the selected schedule.</p>
+            <div class="flex justify-end gap-2">
                 <button type="button" class="btn" id="cancelDeleteBtn">Cancel</button>
                 <button type="button" class="btn btn-error" id="confirmDeleteBtn">Delete</button>
             </div>
@@ -140,232 +106,302 @@
 
 @section('script')
     <script>
-        $(document).ready(function () {
-            let formToDelete = null;
+        $(function () {
             const role = "{{ $role }}";
+            const tabGroup = "{{ $tabGroup }}";
+            let deleteForm = null;
+            let deleteHistoryId = null;
 
-            /** ----------------------------------------
-             *  TIME SLOT GENERATION
-             ---------------------------------------- */
-            function generateTimeSlots(startHour, endHour) {
-                const slots = [];
-                const today = new Date();
-                let start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), startHour, 0, 0);
-                let end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), endHour, 0, 0);
+            let currentYear = {{ $currentYear }};
+            let currentMonth = {{ $currentMonth }};
+            let selectedDate = null;
 
-                while (start < end) {
-                    const slotStart = start.toTimeString().slice(0, 5);
-                    const slotEndDate = new Date(start.getTime() + 30 * 60000);
-                    const slotEnd = slotEndDate.toTimeString().slice(0, 5);
+            function loadCalendar(year, month) {
+                $('#calendarGrid').html('<div class="col-span-7 text-center text-gray-500">Loading...</div>');
+                $('#currentMonthLabel').text(new Date(year, month - 1).toLocaleString('default', { month: 'long', year: 'numeric' }));
 
-                    const labelStart = start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-                    const labelEnd = slotEndDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
+                $.get("{{ route('doctor.schedule.month') }}", { year, month })
+                    .done(function (res) {
+                        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                        let html = '';
 
-                    slots.push({ value: `${slotStart}-${slotEnd}`, label: `${labelStart} - ${labelEnd}` });
+                        dayNames.forEach(d => {
+                            html += `<div class="text-center font-semibold text-gray-600 py-1">${d}</div>`;
+                        });
 
-                    start = slotEndDate;
-                }
-                return slots;
-            }
+                        res.dates.forEach(date => {
+                            const isPast = new Date(date) < new Date(new Date().toISOString().split('T')[0]);
+                            const daySchedules = res.schedules.filter(s => s.date === date);
+                            const hasMorning = daySchedules.some(s => s.start_time === '08:00:00' && s.end_time === '12:00:00');
+                            const hasAfternoon = daySchedules.some(s => s.start_time === '13:00:00' && s.end_time === '17:00:00');
 
-            function renderTimeSlots(slots) {
-                const container = $('#timeSlots');
-                container.empty();
-                slots.forEach(s => {
-                    const id = `slot-${s.value.replace(':', '')}`;
-                    container.append(`
-                                <label class="flex items-center gap-1 border p-1 rounded cursor-pointer">
-                                    <input type="checkbox" name="slots[]" value="${s.value}" id="${id}" class="checkbox">
-                                    <span class="text-xs">${s.label}</span>
-                                </label>
-                            `);
-                });
-            }
+                            html += `<div class="day-cell relative border rounded-lg p-2 flex flex-col cursor-pointer hover:shadow-md transition duration-200 ${isPast ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'}"
+                                                    data-date="${date}" data-disabled="${isPast ? 'true' : 'false'}" style="min-height:170px;">
+                                                    <div class="text-sm font-semibold text-center mb-1 ${isPast ? 'text-gray-400' : 'text-gray-800'}">${new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
+                                                    <div class="text-center text-xs mb-1">
+                                                        ${isPast ? '<span class="text-red-500 font-medium">Unavailable</span>' : (hasMorning || hasAfternoon ? '<span class="text-green-600 font-medium">Available</span>' : '<span class="text-yellow-500 font-medium">No Schedule</span>')}
+                                                    </div>
+                                                    <div class="flex flex-col gap-1 mt-1">
+                                                        ${hasMorning ? `<div class="bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs flex justify-between items-center">
+                                                            <span>Morning</span>
+                                                            ${(!isPast && role === 'doctor' && daySchedules.find(s => s.start_time === '08:00:00') ? `
+                                                                <form method="POST" action="/doctor/schedule/${daySchedules.find(s => s.start_time === '08:00:00').id}" class="delete-schedule-form">
+                                                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                                    <input type="hidden" name="_method" value="DELETE">
+                                                                    <button type="button" class="text-red-500 delete-btn">✕</button>
+                                                                </form>` : '')}
+                                                        </div>` : ''}
+                                                        ${hasAfternoon ? `<div class="bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs flex justify-between items-center">
+                                                            <span>Afternoon</span>
+                                                            ${(!isPast && role === 'doctor' && daySchedules.find(s => s.start_time === '13:00:00') ? `
+                                                                <form method="POST" action="/doctor/schedule/${daySchedules.find(s => s.start_time === '13:00:00').id}" class="delete-schedule-form">
+                                                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                                    <input type="hidden" name="_method" value="DELETE">
+                                                                    <button type="button" class="text-red-500 delete-btn">✕</button>
+                                                                </form>` : '')}
+                                                        </div>` : ''}
+                                                    </div>
+                                                </div>`;
+                        });
 
-            /** ----------------------------------------
-             *  LOAD HISTORY
-             ---------------------------------------- */
-            function loadScheduleHistory(date, doctorId) {
-                if (!doctorId) return;
-
-                $.get("{{ route('doctor.schedule.history') }}", { date, doctor_user_id: doctorId }, function (res) {
-                    const list = $('#historyList');
-                    list.empty();
-
-                    if (res.length === 0) {
-                        list.append('<div class="text-gray-500 text-sm">No schedules found</div>');
-                        return;
-                    }
-
-                    res.forEach(s => {
-                        const start = new Date('1970-01-01T' + s.start_time);
-                        const end = new Date('1970-01-01T' + s.end_time);
-
-                        const label =
-                            start.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }) +
-                            ' - ' +
-                            end.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true });
-
-                        list.append(`
-                                    <div class="flex justify-between items-center p-2 bg-white border rounded shadow-sm hover:shadow-md transition">
-                                        <div class="text-sm font-medium text-gray-700">${label}</div>
-                                        ${role !== 'doctor'
-                                ? `<div class="text-xs text-gray-500">${s.doctor_name}</div>`
-                                : ''}
-                                    </div>
-                                `);
-                    });
-                });
-            }
-
-
-            /** ----------------------------------------
-             *  FIX: PREVENT BUBBLING WHEN CLICKING DELETE
-             ---------------------------------------- */
-
-            // Clicking the X button
-            $(document).on("click", ".delete-btn", function (e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();  // ⛔ FULL STOP — NOTHING BUBBLES
-                e.stopPropagation();
-
-                formToDelete = $(this).closest("form");
-                $("#deleteScheduleModal").addClass("modal-open");
-            });
-
-            // Clicking inside the delete form itself
-            $(document).on("click", ".delete-schedule-form", function (e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                e.stopPropagation();
-            });
-
-
-            /** ----------------------------------------
-             *  DAY CELL CLICK — OPEN ADD SCHEDULE MODAL
-             ---------------------------------------- */
-            $(".day-cell").on("click", function (e) {
-                // Make sure delete click NEVER triggers this
-                if ($(e.target).closest(".delete-btn").length) return;
-                if ($(e.target).closest(".delete-schedule-form").length) return;
-
-                if ($(this).data("disabled")) return;
-
-                const date = $(this).data("date");
-                $("#scheduleDate").val(date);
-
-                renderTimeSlots(generateTimeSlots(0, 12));
-
-                const doctorId = role === "doctor"
-                    ? "{{ $user->id }}"
-                    : $('select[name="doctor_user_id"]').val();
-
-                if (doctorId) {
-                    loadScheduleHistory(date, doctorId);
-                }
-
-
-                $("#addScheduleModal").addClass("modal-open");
-            });
-
-
-            /** ----------------------------------------
-             *  TABS CHANGE (HISTORY/ADD)
-             ---------------------------------------- */
-            $('input[name="schedule_tabs"]').on("change", function () {
-                if ($("#tabHistory").is(":checked")) {
-                    const date = $("#scheduleDate").val();
-                    const doctorId = role === "doctor" ? "{{ $user->id }}" : $('select[name="doctor_user_id"]').val();
-                    if (doctorId) loadScheduleHistory(date, doctorId);
-                }
-            });
-
-            /** AM/PM buttons **/
-            $(document).on("click", "#btnAM", () =>
-                renderTimeSlots(generateTimeSlots(0, 12))
-            );
-            $(document).on("click", "#btnPM", () =>
-                renderTimeSlots(generateTimeSlots(12, 24))
-            );
-
-            /** Doctor dropdown change **/
-            $(document).on("change", 'select[name="doctor_user_id"]', function () {
-                const doctorId = $(this).val();
-                const date = $("#scheduleDate").val();
-                if (doctorId) loadScheduleHistory(date, doctorId);
-            });
-
-
-            /** ----------------------------------------
-             *  SUBMIT ADD SLOT FORM
-             ---------------------------------------- */
-            $("#modalScheduleForm").on("submit", function (e) {
-                e.preventDefault();
-
-                const slots = $('input[name="slots[]"]:checked')
-                    .map(function () {
-                        return $(this).val();
+                        $('#calendarGrid').html(html);
                     })
-                    .get();
+                    .fail(function () {
+                        $.toast({
+                            heading: "Something went wrong.",
+                            icon: "error",
+                            text: "Failed to load calendar.",
+                            showHideTransition: 'slide',
+                            stack: 3,
+                            position: 'top-right',
+                        });
+                    });
+            }
 
-                if (slots.length === 0) {
-                    alert("Please select at least one time slot");
+            // Initial load
+            loadCalendar(currentYear, currentMonth);
+
+            // Month navigation
+            $('#prevMonthBtn').on('click', function () {
+                currentMonth--;
+                if (currentMonth < 1) { currentMonth = 12; currentYear--; }
+                loadCalendar(currentYear, currentMonth);
+            });
+            $('#nextMonthBtn').on('click', function () {
+                currentMonth++;
+                if (currentMonth > 12) { currentMonth = 1; currentYear++; }
+                loadCalendar(currentYear, currentMonth);
+            });
+
+            // Calendar click - open Add modal and set selected date
+            $(document).on('click', '.day-cell', function (e) {
+                if ($(e.target).closest('.delete-btn').length) return;
+                if ($(this).data('disabled') === 'true') return;
+
+                selectedDate = $(this).data('date');
+                $('#scheduleDate').val(selectedDate);
+                document.getElementById(tabGroup + '_add').checked = true;
+                $('#addScheduleModal').addClass('modal-open');
+
+                // Auto load history if doctor selected
+                const doctorId = $('#historyDoctorSelect').val();
+                if (role !== 'doctor' && doctorId) {
+                    document.getElementById(tabGroup + '_history').checked = true;
+                    loadHistory(doctorId, selectedDate);
+                } else if (role === 'doctor') {
+                    loadHistory("{{ $user->id }}", selectedDate);
+                }
+            });
+
+            // Submit schedule
+            $('#modalScheduleForm').on('submit', function (e) {
+                e.preventDefault();
+                const am = $("input[name='am']").is(':checked');
+                const pm = $("input[name='pm']").is(':checked');
+                if (!am && !pm) {
+                    $.toast({
+                        heading: "Something went wrong.",
+                        icon: "error",
+                        text: "Please select AM or PM.",
+                        showHideTransition: 'slide',
+                        stack: 3,
+                        position: 'top-right',
+                    });
+                    return;
+                }
+                if (role !== 'doctor' && !$('#selectDoctorForModal').val()) {
+                    $.toast({
+                        heading: "Something went wrong.",
+                        icon: "error",
+                        text: "Please select a doctor.",
+                        showHideTransition: 'slide',
+                        stack: 3,
+                        position: 'top-right',
+                    });
                     return;
                 }
 
-                const formData = $(this).serializeArray();
-
-                slots.forEach(s => {
-                    const [start, end] = s.split("-");
-                    formData.push({ name: "start_time[]", value: start });
-                    formData.push({ name: "end_time[]", value: end });
-                });
-
-                $.ajax({
-                    url: "{{ route('doctor.schedule.store') }}",
-                    method: "POST",
-                    data: formData,
-                    success: function (res) {
-                        $.toast({ heading: "Success", icon: "success", text: res.message });
-                        location.reload();
-                    },
-                    error: function (xhr) {
+                $.post("{{ route('doctor.schedule.store') }}", $(this).serialize())
+                    .done(res => {
                         $.toast({
-                            heading: "Error",
-                            icon: "error",
-                            text: xhr.responseJSON?.message || "Something went wrong",
+                            heading: 'Success',
+                            icon: 'success',
+                            text: res.message ?? 'Saved',
+                            showHideTransition: 'slide',
+                            stack: 3,
+                            position: 'top-right',
                         });
-                    },
-                });
+                        loadCalendar(currentYear, currentMonth);
+                        $('#addScheduleModal').removeClass('modal-open');
+                    })
+                    .fail(() => {
+                        $.toast({
+                            heading: "Something went wrong.",
+                            icon: "error",
+                            text: "Failed to save schedule.",
+                            showHideTransition: 'slide',
+                            stack: 3,
+                            position: 'top-right',
+                        });
+                    });
+            });
+
+            function loadHistory(doctorId, date) {
+                if (!doctorId || !date) return;
+                $.get('/doctor/schedule/history', { doctor_user_id: doctorId, date: date })
+                    .done(function (res) {
+                        let html = '';
+                        if (res.length === 0) {
+                            html = '<div class="text-gray-500">No schedules found.</div>';
+                        } else {
+                            res.forEach(s => {
+                                html += `<div class="p-2 bg-gray-100 rounded flex justify-between items-center">
+                                                <span>${s.label}</span>
+                                                <button type="button" class="text-red-500 delete-history-btn" data-id="${s.id}">✕</button>
+                                            </div>`;
+                            });
+                        }
+                        $('#historyList').html(html);
+                    })
+                    .fail(function () {
+                        $.toast({
+                            heading: "Something went wrong.",
+                            icon: "error",
+                            text: "Failed to load history.",
+                            showHideTransition: 'slide',
+                            stack: 3,
+                            position: 'top-right',
+                        });
+                    });
+            }
+
+
+            // Admin/staff selects doctor in history tab
+            $('#historyDoctorSelect').on('change', function () {
+                const doctorId = $(this).val();
+                if (!selectedDate) return;
+                loadHistory(doctorId, selectedDate);
+            });
+
+            // Delete schedule
+            $(document).on('click', '.delete-btn', function (e) {
+                e.stopPropagation();
+                deleteForm = $(this).closest('form');
+                $('#deleteScheduleModal').addClass('modal-open');
+            });
+
+            $('#cancelDeleteBtn').on('click', function () {
+                deleteForm = null;
+                deleteHistoryId = null;
+                $('#deleteScheduleModal').removeClass('modal-open');
+            });
+
+            $('#confirmDeleteBtn').on('click', function () {
+                if (deleteForm) {
+                    // Existing calendar slot delete
+                    $.ajax({
+                        url: deleteForm.attr('action'),
+                        method: 'POST',
+                        data: deleteForm.serialize(),
+                        success() {
+                            $.toast({
+                                heading: 'Success',
+                                icon: 'success',
+                                text: 'Schedule deleted',
+                                showHideTransition: 'slide',
+                                stack: 3,
+                                position: 'top-right',
+                            });
+                            loadCalendar(currentYear, currentMonth);
+                            $('#deleteScheduleModal').removeClass('modal-open');
+                            deleteForm = null;
+                        },
+                        error() {
+                            $.toast({
+                                heading: "Something went wrong.",
+                                icon: "error",
+                                text: "Failed to delete schedule.",
+                                showHideTransition: 'slide',
+                                stack: 3,
+                                position: 'top-right',
+                            });
+                        }
+                    });
+                } else if (deleteHistoryId) {
+                    // History delete
+                    $.ajax({
+                        url: '/doctor/schedule/' + deleteHistoryId,
+                        method: 'POST',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            _method: 'DELETE'
+                        },
+                        success() {
+                            $.toast({
+                                heading: 'Success',
+                                icon: 'success',
+                                text: 'Schedule deleted',
+                                showHideTransition: 'slide',
+                                stack: 3,
+                                position: 'top-right',
+                            });
+
+                            // reload calendar and history
+                            loadCalendar(currentYear, currentMonth);
+                            loadHistory(
+                                role === 'doctor' ? "{{ $user->id }}" : $('#historyDoctorSelect').val(),
+                                selectedDate
+                            );
+
+                            $('#deleteScheduleModal').removeClass('modal-open');
+                            deleteHistoryId = null;
+                        },
+                        error() {
+                            $.toast({
+                                heading: "Something went wrong.",
+                                icon: "error",
+                                text: "Failed to delete schedule.",
+                                showHideTransition: 'slide',
+                                stack: 3,
+                                position: 'top-right',
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Delete from history list
+            $(document).on('click', '.delete-history-btn', function (e) {
+                e.stopPropagation(); // prevent opening modal
+                deleteHistoryId = $(this).data('id');
+
+                if (!deleteHistoryId) return;
+
+                // Open the same modal
+                $('#deleteScheduleModal').addClass('modal-open');
             });
 
 
-            /** ----------------------------------------
-             *  DELETE CONFIRMATION
-             ---------------------------------------- */
-            $("#cancelDeleteBtn").on("click", function () {
-                formToDelete = null;
-                $("#deleteScheduleModal").removeClass("modal-open");
-            });
-
-            $("#confirmDeleteBtn").on("click", function () {
-                if (!formToDelete) return;
-
-                $.ajax({
-                    url: formToDelete.attr("action"),
-                    method: "POST",
-                    data: { _token: "{{ csrf_token() }}", _method: "DELETE" },
-                    success: function (res) {
-                        if (res.success) location.reload();
-                    },
-                    error: function () {
-                        alert("Error deleting schedule.");
-                    },
-                });
-
-                $("#deleteScheduleModal").removeClass("modal-open");
-                formToDelete = null;
-            });
 
         });
     </script>
