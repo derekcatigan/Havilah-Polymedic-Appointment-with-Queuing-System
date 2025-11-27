@@ -13,6 +13,7 @@
             <h2 class="text-xl font-semibold mb-3">Book Appointment</h2>
 
             <div class="p-5 bg-white border border-gray-300 shadow rounded-md">
+                {{-- Doctor Info --}}
                 <div class="flex items-center gap-4">
                     <div class="w-15 h-15 rounded-full overflow-hidden flex-shrink-0">
                         @if($users->doctor->profile_picture)
@@ -38,8 +39,9 @@
                     </div>
                 </div>
 
+                {{-- Appointment Section --}}
                 <div class="w-full mt-8">
-                    {{-- 3 states: pending, confirmed, or booking form --}}
+
                     @if ($appointment && $appointment->status === 'pending')
                         <form id="cancelForm" autocomplete="off">
                             @csrf
@@ -59,80 +61,21 @@
                             <form id="bookForm" autocomplete="off">
                                 @csrf
 
-                                @php
-                                    $firstOfMonth = new DateTime('first day of this month');
-                                    $lastOfMonth = new DateTime('last day of this month');
+                                {{-- Month Navigation --}}
+                                <div class="flex justify-between items-center mb-2 px-2">
+                                    <button type="button" id="prevMonthBtn" class="btn btn-sm">← Previous</button>
+                                    <h3 class="text-lg font-semibold text-gray-700" id="currentMonthLabel"></h3>
+                                    <button type="button" id="nextMonthBtn" class="btn btn-sm">Next →</button>
+                                </div>
+                                <small class="text-gray-500 mb-3 block">Click a date to select it</small>
 
-                                    $calendarDates = [];
-                                    $firstWeekday = (int) $firstOfMonth->format('w');
+                                {{-- Calendar Grid --}}
+                                <div id="patientCalendar" class="grid grid-cols-7 gap-2 border rounded bg-white p-2"></div>
 
-                                    for ($i = 0; $i < $firstWeekday; $i++) {
-                                        $calendarDates[] = null;
-                                    }
-                                    for ($d = clone $firstOfMonth; $d <= $lastOfMonth; $d->modify('+1 day')) {
-                                        $calendarDates[] = $d->format('Y-m-d');
-                                    }
-                                @endphp
-
-                                <div class="mb-4">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <h3 class="text-lg font-semibold">{{ date('F Y') }}</h3>
-                                        <small class="text-gray-500">Click a date to select it</small>
-                                    </div>
-
-                                    <div id="patientCalendar" class="grid grid-cols-7 gap-2 border rounded bg-white p-2">
-                                        {{-- day names --}}
-                                        @foreach(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as $dow)
-                                            <div class="text-center py-2 font-medium text-sm border-b">{{ $dow }}</div>
-                                        @endforeach
-
-                                        {{-- date cells --}}
-                                        @foreach ($calendarDates as $cdate)
-                                            @if (!$cdate)
-                                                <div class="min-h-[120px] p-2 rounded-lg border bg-gray-100"></div>
-                                            @else
-                                                @php
-                                                    $isPast = strtotime($cdate) < strtotime(date('Y-m-d'));
-                                                    $hasSchedule = in_array($cdate, $schedules);
-                                                    $disabled = $isPast || !$hasSchedule;
-                                                    $dayNum = date('j', strtotime($cdate));
-                                                @endphp
-                                                <div class="min-h-[120px] relative p-3 rounded-lg border flex flex-col justify-between cursor-pointer transition
-                                                                                                                                                                                                    {{ $disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white hover:shadow-md' }}"
-                                                    data-date="{{ $cdate }}" data-disabled="{{ $disabled ? '1' : '0' }}">
-                                                    <div class="flex items-start justify-between">
-                                                        <div class="text-sm font-semibold">{{ $dayNum }}</div>
-                                                        @if($isPast)
-                                                            <div class="text-xs text-gray-400">Past</div>
-                                                        @elseif(!$hasSchedule)
-                                                            <div class="text-xs text-red-500">No Schedule</div>
-                                                        @endif
-                                                    </div>
-
-                                                    <div class="mt-2">
-                                                        <span
-                                                            class="text-xs font-medium status-label {{ $disabled ? 'text-red-500' : 'text-green-600' }}">
-                                                            {{ $disabled ? ($isPast ? 'Unavailable' : 'No Schedule') : 'Available' }}
-                                                        </span>
-                                                    </div>
-
-                                                    <div class="mt-3 text-center">
-                                                        @if(!$disabled)
-                                                            <button type="button" class="select-date-btn btn btn-sm btn-outline w-full text-xs"
-                                                                data-date="{{ $cdate }}">
-                                                                Select date
-                                                            </button>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            @endif
-                                        @endforeach
-                                    </div>
-
-                                    <div class="mt-3 flex items-center gap-3">
-                                        <div class="text-sm">Selected:</div>
-                                        <div id="selectedSlotLabel" class="text-sm font-medium text-blue-600">None</div>
-                                    </div>
+                                {{-- Selected Date --}}
+                                <div class="mt-3 flex items-center gap-3">
+                                    <div class="text-sm">Selected:</div>
+                                    <div id="selectedSlotLabel" class="text-sm font-medium text-blue-600">None</div>
                                 </div>
 
                                 <input type="hidden" id="starts_at" name="starts_at" required>
@@ -164,13 +107,77 @@
         (function () {
             const csrfToken = "{{ csrf_token() }}";
             const doctorId = "{{ $users->id }}";
+            const schedules = @json($schedules); // array of available dates (Y-m-d)
             let selectedDate = null;
 
-            // Default appointment times (you can change this or make it dynamic)
-            const defaultStartTime = "09:00";
-            const defaultEndTime = "09:30";
-
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': csrfToken } });
+
+            let currentYear = new Date().getFullYear();
+            let currentMonth = new Date().getMonth() + 1; // JS months 0-11
+
+            const calendarEl = $('#patientCalendar');
+            const monthLabel = $('#currentMonthLabel');
+
+            function renderCalendar(year, month) {
+                calendarEl.empty();
+                const dateObj = new Date(year, month - 1);
+                monthLabel.text(dateObj.toLocaleString('default', { month: 'long', year: 'numeric' }));
+
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                days.forEach(d => calendarEl.append(`<div class="text-center py-2 font-medium text-sm border-b">${d}</div>`));
+
+                const firstOfMonth = new Date(year, month - 1, 1);
+                const lastOfMonth = new Date(year, month, 0);
+                const firstWeekday = firstOfMonth.getDay();
+
+                // Empty cells
+                for (let i = 0; i < firstWeekday; i++) {
+                    calendarEl.append('<div class="min-h-[120px] p-2 rounded-lg border bg-gray-100"></div>');
+                }
+
+                // Dates
+                for (let d = 1; d <= lastOfMonth.getDate(); d++) {
+                    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const isPast = new Date(dateStr) < new Date(new Date().toISOString().split('T')[0]);
+                    const hasSchedule = schedules.includes(dateStr);
+                    const disabled = isPast || !hasSchedule;
+
+                    const dayHtml = `
+                            <div class="min-h-[120px] relative p-3 rounded-lg border flex flex-col justify-between cursor-pointer transition
+                                ${disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white hover:shadow-md'}"
+                                data-date="${dateStr}" data-disabled="${disabled ? '1' : '0'}">
+                                <div class="flex items-start justify-between">
+                                    <div class="text-sm font-semibold">${d}</div>
+                                    ${isPast ? '<div class="text-xs text-gray-400">Past</div>' : (!hasSchedule ? '<div class="text-xs text-red-500">No Schedule</div>' : '')}
+                                </div>
+                                <div class="mt-2">
+                                    <span class="text-xs font-medium status-label ${disabled ? 'text-red-500' : 'text-green-600'}">
+                                        ${disabled ? (isPast ? 'Unavailable' : 'No Schedule') : 'Available'}
+                                    </span>
+                                </div>
+                                <div class="mt-3 text-center">
+                                    ${!disabled ? `<button type="button" class="select-date-btn btn btn-sm btn-outline w-full text-xs" data-date="${dateStr}">Select date</button>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    calendarEl.append(dayHtml);
+                }
+            }
+
+            // Initial render
+            renderCalendar(currentYear, currentMonth);
+
+            // Month navigation
+            $('#prevMonthBtn').click(() => {
+                currentMonth--;
+                if (currentMonth < 1) { currentMonth = 12; currentYear--; }
+                renderCalendar(currentYear, currentMonth);
+            });
+            $('#nextMonthBtn').click(() => {
+                currentMonth++;
+                if (currentMonth > 12) { currentMonth = 1; currentYear++; }
+                renderCalendar(currentYear, currentMonth);
+            });
 
             // Select date
             $(document).on('click', '.select-date-btn', function () {
@@ -180,10 +187,8 @@
                 $('#patientCalendar [data-date]').removeClass('ring-2 ring-blue-300 bg-blue-50');
                 $(this).closest('[data-date]').addClass('ring-2 ring-blue-300 bg-blue-50');
 
-                // Store selected date for payload
                 selectedDate = date;
 
-                // Format for display
                 const formattedDate = new Date(date).toLocaleDateString('en-US', {
                     weekday: 'long',
                     year: 'numeric',
@@ -193,10 +198,9 @@
                 $('#selectedSlotLabel').text(formattedDate);
             });
 
-            // Handle booking form submission
+            // Booking submission
             $('#bookForm').on('submit', function (e) {
                 e.preventDefault();
-
                 if (!selectedDate) {
                     $.toast({ heading: 'Error', icon: 'error', text: 'Please select a date.' });
                     return;
@@ -207,30 +211,29 @@
                 $('#buttonText').addClass('hidden');
                 $('#spinner').removeClass('hidden');
 
-                // Prepare payload with proper Y-m-d H:i format
                 const payload = {
                     reason: $('#reason').val(),
-                    starts_at: selectedDate + ' ' + defaultStartTime,
-                    ends_at: selectedDate + ' ' + defaultEndTime,
+                    starts_at: selectedDate + ' 09:00',
+                    ends_at: selectedDate + ' 09:30',
                     _token: csrfToken
                 };
 
                 $.post(`/book/appointment/${doctorId}`, payload)
-                    .done(function (res) {
+                    .done(res => {
                         $.toast({ heading: 'Success', icon: 'success', text: res.message, position: 'top-right' });
                         setTimeout(() => window.location.reload(), 600);
                     })
-                    .fail(function (xhr) {
+                    .fail(xhr => {
                         $.toast({ heading: 'Error', icon: 'error', text: xhr.responseJSON?.message || 'Booking failed.' });
                     })
-                    .always(function () {
+                    .always(() => {
                         btn.prop('disabled', false);
                         $('#buttonText').removeClass('hidden');
                         $('#spinner').addClass('hidden');
                     });
             });
 
-            // Handle cancel booking
+            // Cancel booking
             $('#cancelForm').on('submit', function (e) {
                 e.preventDefault();
                 const id = $('#cancelBtn').data('id');
@@ -246,7 +249,6 @@
                     }
                 });
             });
-
         })();
     </script>
 @endsection

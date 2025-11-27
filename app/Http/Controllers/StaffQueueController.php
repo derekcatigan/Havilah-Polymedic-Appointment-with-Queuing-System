@@ -6,30 +6,32 @@ use App\Mail\QueueStatusNotification;
 use App\Models\Queue;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
 class StaffQueueController extends Controller
 {
     public function index(Request $request)
     {
-        $doctorId = $request->get('doctor');
+        $staff = Auth::user();
 
-        $doctors = User::where('role', 'doctor')->get();
+        // Only queues of the assigned doctor
+        $doctorId = $staff->doctor_user_id;
 
         $queues = Queue::with(['patient', 'doctor'])
-            ->when($doctorId, fn($q) => $q->where('doctor_user_id', $doctorId))
+            ->where('doctor_user_id', $doctorId)
             ->whereDate('queue_date', today())
             ->orderBy('queue_number')
             ->get();
 
         $currentQueue = Queue::with('patient')
+            ->where('doctor_user_id', $doctorId)
             ->whereIn('queue_status', ['called', 'in_progress'])
-            ->when($doctorId, fn($q) => $q->where('doctor_user_id', $doctorId))
             ->whereDate('queue_date', today())
             ->orderBy('queue_number')
             ->first();
 
-        return view('staff.manage-queue', compact('queues', 'doctors', 'currentQueue'));
+        return view('staff.manage-queue', compact('queues', 'currentQueue'));
     }
 
     public function call(Queue $queue)

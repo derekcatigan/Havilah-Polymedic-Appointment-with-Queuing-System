@@ -35,7 +35,8 @@ class ManageAccountController extends Controller
 
     public function create()
     {
-        return view('admin.create-account');
+        $doctors = User::where('role', 'doctor')->with('doctor')->get();
+        return view('admin.create-account', compact('doctors'));
     }
 
     public function store(Request $request)
@@ -43,19 +44,16 @@ class ManageAccountController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'phone'     => 'required|string|min:11|max:11|unique:users,contact_number',
-            'address'   => 'required|string|max:255',
+            'phone' => 'required|string|min:11|max:11|unique:users,contact_number',
+            'address' => 'required|string|max:255',
             'role' => 'required|string',
             'password' => 'required|min:6',
+            'doctor_user_id' => 'nullable|exists:users,id',
         ]);
 
-        $exists = User::where('name', Str::title($validated['name']))
-            ->where('contact_number', $validated['phone'])
-            ->exists();
-
-        if ($exists) {
+        if ($validated['role'] === 'staff' && empty($validated['doctor_user_id'])) {
             return response()->json([
-                'message' => 'A user with the same name and phone already exists.'
+                'message' => 'Please assign a doctor for the staff.'
             ], 422);
         }
 
@@ -69,18 +67,15 @@ class ManageAccountController extends Controller
                 'address' => Str::title($validated['address']),
                 'role' => $validated['role'],
                 'password' => Hash::make($validated['password']),
+                'doctor_user_id' => $validated['doctor_user_id'] ?? null,
             ]);
 
             DB::commit();
-            return response()->json([
-                'message' => 'Account created successfully!',
-            ], 201);
+            return response()->json(['message' => 'Account created successfully!'], 201);
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error('something went wrong: ' . $e->getMessage());
-            return response()->json([
-                'message' => 'Something went wrong. Please try again later.'
-            ], 500);
+            Log::error('Account creation failed: ' . $e->getMessage());
+            return response()->json(['message' => 'Something went wrong.'], 500);
         }
     }
 
