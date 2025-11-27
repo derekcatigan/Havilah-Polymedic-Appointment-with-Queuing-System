@@ -10,7 +10,7 @@
     <div class="links-container text-sm">
         <a href="{{ route('home') }}" class="{{ Request::routeIs('home') ? 'active' : ''}}">Home</a>
         <a href="{{ route('home.doctor') }}"
-            class="{{ Request::routeIs('home.doctor', 'book.doctor') ? 'active' : '' }}">Doctors</a>
+            class="{{ Request::routeIs('home.doctor', 'book.doctor') ? 'active' : '' }}">Appoinments</a>
         <a href="#">AboutUs</a>
         <a href="#">Contact</a>
     </div>

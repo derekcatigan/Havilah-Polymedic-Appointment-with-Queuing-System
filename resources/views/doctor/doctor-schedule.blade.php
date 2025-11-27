@@ -136,32 +136,32 @@
                             const hasAfternoon = daySchedules.some(s => s.start_time === '13:00:00' && s.end_time === '17:00:00');
 
                             html += `<div class="day-cell relative border rounded-lg p-2 flex flex-col cursor-pointer hover:shadow-md transition duration-200 ${isPast ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'}"
-                                                    data-date="${date}" data-disabled="${isPast ? 'true' : 'false'}" style="min-height:170px;">
-                                                    <div class="text-sm font-semibold text-center mb-1 ${isPast ? 'text-gray-400' : 'text-gray-800'}">${new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
-                                                    <div class="text-center text-xs mb-1">
-                                                        ${isPast ? '<span class="text-red-500 font-medium">Unavailable</span>' : (hasMorning || hasAfternoon ? '<span class="text-green-600 font-medium">Available</span>' : '<span class="text-yellow-500 font-medium">No Schedule</span>')}
-                                                    </div>
-                                                    <div class="flex flex-col gap-1 mt-1">
-                                                        ${hasMorning ? `<div class="bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs flex justify-between items-center">
-                                                            <span>Morning</span>
-                                                            ${(!isPast && role === 'doctor' && daySchedules.find(s => s.start_time === '08:00:00') ? `
-                                                                <form method="POST" action="/doctor/schedule/${daySchedules.find(s => s.start_time === '08:00:00').id}" class="delete-schedule-form">
-                                                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                                                    <input type="hidden" name="_method" value="DELETE">
-                                                                    <button type="button" class="text-red-500 delete-btn">✕</button>
-                                                                </form>` : '')}
-                                                        </div>` : ''}
-                                                        ${hasAfternoon ? `<div class="bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs flex justify-between items-center">
-                                                            <span>Afternoon</span>
-                                                            ${(!isPast && role === 'doctor' && daySchedules.find(s => s.start_time === '13:00:00') ? `
-                                                                <form method="POST" action="/doctor/schedule/${daySchedules.find(s => s.start_time === '13:00:00').id}" class="delete-schedule-form">
-                                                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                                                    <input type="hidden" name="_method" value="DELETE">
-                                                                    <button type="button" class="text-red-500 delete-btn">✕</button>
-                                                                </form>` : '')}
-                                                        </div>` : ''}
-                                                    </div>
-                                                </div>`;
+                                                        data-date="${date}" data-disabled="${isPast ? 'true' : 'false'}" style="min-height:170px;">
+                                                        <div class="text-sm font-semibold text-center mb-1 ${isPast ? 'text-gray-400' : 'text-gray-800'}">${new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
+                                                        <div class="text-center text-xs mb-1">
+                                                            ${isPast ? '<span class="text-red-500 font-medium">Unavailable</span>' : (hasMorning || hasAfternoon ? '<span class="text-green-600 font-medium">Available</span>' : '<span class="text-yellow-500 font-medium">No Schedule</span>')}
+                                                        </div>
+                                                        <div class="flex flex-col gap-1 mt-1">
+                                                            ${hasMorning ? `<div class="bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs flex justify-between items-center">
+                                                                <span>Morning</span>
+                                                                ${(!isPast && role === 'doctor' && daySchedules.find(s => s.start_time === '08:00:00') ? `
+                                                                    <form method="POST" action="/doctor/schedule/${daySchedules.find(s => s.start_time === '08:00:00').id}" class="delete-schedule-form">
+                                                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                                        <input type="hidden" name="_method" value="DELETE">
+                                                                        <button type="button" class="text-red-500 delete-btn">✕</button>
+                                                                    </form>` : '')}
+                                                            </div>` : ''}
+                                                            ${hasAfternoon ? `<div class="bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs flex justify-between items-center">
+                                                                <span>Afternoon</span>
+                                                                ${(!isPast && role === 'doctor' && daySchedules.find(s => s.start_time === '13:00:00') ? `
+                                                                    <form method="POST" action="/doctor/schedule/${daySchedules.find(s => s.start_time === '13:00:00').id}" class="delete-schedule-form">
+                                                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                                        <input type="hidden" name="_method" value="DELETE">
+                                                                        <button type="button" class="text-red-500 delete-btn">✕</button>
+                                                                    </form>` : '')}
+                                                            </div>` : ''}
+                                                        </div>
+                                                    </div>`;
                         });
 
                         $('#calendarGrid').html(html);
@@ -276,9 +276,9 @@
                         } else {
                             res.forEach(s => {
                                 html += `<div class="p-2 bg-gray-100 rounded flex justify-between items-center">
-                                                <span>${s.label}</span>
-                                                <button type="button" class="text-red-500 delete-history-btn" data-id="${s.id}">✕</button>
-                                            </div>`;
+                                                    <span>${s.label}</span>
+                                                    <button type="button" class="text-red-500 delete-history-btn" data-id="${s.id}">✕</button>
+                                                </div>`;
                             });
                         }
                         $('#historyList').html(html);

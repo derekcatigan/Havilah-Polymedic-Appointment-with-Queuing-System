@@ -46,7 +46,7 @@ class MyScheduleController extends Controller
 
         $doctorId = ($role === 'doctor') ? $user->id : $request->input('doctor_user_id');
 
-        // fixed times (use H:i:s in DB)
+        // fixed times
         $AM_start = '08:00:00';
         $AM_end   = '12:00:00';
         $PM_start = '13:00:00';
