@@ -131,23 +131,6 @@ class AppointmentController extends Controller
         }
     }
 
-    // public function queueCount(Request $request)
-    // {
-    //     $request->validate([
-    //         'doctor_id' => 'required|exists:users,id',
-    //         'date' => 'required|date',
-    //     ]);
-
-    //     $count = Queue::where('doctor_user_id', $request->doctor_id)
-    //         ->where('queue_date', $request->date)
-    //         ->where('queue_status', 'confirmed')
-    //         ->count();
-
-    //     return response()->json([
-    //         'count' => $count
-    //     ]);
-    // }
-
     public function queueCount(Request $request)
     {
         $request->validate([

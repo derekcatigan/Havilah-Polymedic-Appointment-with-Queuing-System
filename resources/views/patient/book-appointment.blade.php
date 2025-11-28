@@ -149,23 +149,23 @@
                     const disabled = isPast || !hasSchedule;
 
                     const dayHtml = `
-                                        <div class="min-h-[120px] relative p-3 rounded-lg border flex flex-col justify-between cursor-pointer transition
-                                            ${disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white hover:shadow-md'}"
-                                            data-date="${dateStr}" data-disabled="${disabled ? '1' : '0'}">
-                                            <div class="flex items-start justify-between">
-                                                <div class="text-sm font-semibold">${d}</div>
-                                                ${isPast ? '<div class="text-xs text-gray-400">Past</div>' : (!hasSchedule ? '<div class="text-xs text-red-500">No Schedule</div>' : '')}
-                                            </div>
-                                            <div class="mt-2">
-                                                <span class="text-xs font-medium status-label ${disabled ? 'text-red-500' : 'text-green-600'}">
-                                                    ${disabled ? (isPast ? 'Unavailable' : 'No Schedule') : 'Available'}
-                                                </span>
-                                            </div>
-                                            <div class="mt-3 text-center">
-                                                ${!disabled ? `<button type="button" class="select-date-btn btn btn-sm btn-outline w-full text-xs" data-date="${dateStr}">Select date</button>` : ''}
-                                            </div>
-                                        </div>
-                                    `;
+                                                <div class="min-h-[120px] relative p-3 rounded-lg border flex flex-col justify-between cursor-pointer transition
+                                                    ${disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white hover:shadow-md'}"
+                                                    data-date="${dateStr}" data-disabled="${disabled ? '1' : '0'}">
+                                                    <div class="flex items-start justify-between">
+                                                        <div class="text-sm font-semibold">${d}</div>
+                                                        ${isPast ? '<div class="text-xs text-gray-400">Past</div>' : (!hasSchedule ? '<div class="text-xs text-red-500">No Schedule</div>' : '')}
+                                                    </div>
+                                                    <div class="mt-2">
+                                                        <span class="text-xs font-medium status-label ${disabled ? 'text-red-500' : 'text-green-600'}">
+                                                            ${disabled ? (isPast ? 'Unavailable' : 'No Schedule') : 'Available'}
+                                                        </span>
+                                                    </div>
+                                                    <div class="mt-3 text-center">
+                                                        ${!disabled ? `<button type="button" class="select-date-btn btn btn-sm btn-outline w-full text-xs" data-date="${dateStr}">Select date</button>` : ''}
+                                                    </div>
+                                                </div>
+                                            `;
                     calendarEl.append(dayHtml);
                 }
             }

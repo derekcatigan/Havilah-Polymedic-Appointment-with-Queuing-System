@@ -16,7 +16,11 @@
 
         <div class="links-container text-sm">
             <a href="{{ route('home') }}" class="{{ Request::routeIs('home') ? 'active' : ''}}">Home</a>
-            <a href="{{ route('home.doctor') }}" class="{{ Request::routeIs('home.doctor') ? 'active' : '' }}">Doctors</a>
+            <a href="{{ route('home.doctor') }}"
+                class="{{ Request::routeIs('home.doctor', 'book.doctor') ? 'active' : '' }}">Book</a>
+            <a href="{{ route('home.queue') }}" class="{{ Request::routeIs('home.queue') ? 'active' : '' }}">Queue</a>
+            <a href="{{ route('patient.appointments') }}"
+                class="{{ Request::routeIs('patient.appointments') ? 'active' : '' }}">My Appointments</a>
             <a href="#">AboutUs</a>
             <a href="#">Contact</a>
         </div>

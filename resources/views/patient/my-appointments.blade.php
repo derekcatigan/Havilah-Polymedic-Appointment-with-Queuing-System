@@ -10,29 +10,6 @@
     @include('partials.header')
 
     <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {{-- Top ad / hero (keeps existing behavior) --}}
-        <section class="mb-8">
-            @php
-                $ads = \App\Models\Ad::where('status', 'active')
-                    ->where('position', 'homepage')
-                    ->latest()
-                    ->get();
-            @endphp
-
-            <div class="flex justify-center">
-                @forelse ($ads as $ad)
-                    <a href="{{ $ad->link ?? '#' }}" target="_blank" class="block w-full md:w-[1000px]">
-                        <img src="{{ asset('storage/' . $ad->image_path) }}" alt="{{ $ad->title ?? 'Advertisement' }}"
-                            class="w-full h-[200px] md:h-[280px] object-cover rounded-lg shadow-sm border">
-                    </a>
-                @empty
-                    <div class="w-full md:w-[1000px] text-center text-gray-500">
-                        No ads available at the moment.
-                    </div>
-                @endforelse
-            </div>
-        </section>
-
         {{-- Page header --}}
         <header class="flex items-center justify-between rounded border border-gray-300 mb-6">
             <h1 class="text-2xl font-bold">My Appointments</h1>
@@ -80,16 +57,6 @@
                                                     d="M8 7V3m8 4V3m-9 8h10M5 20h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v11a2 2 0 002 2z" />
                                             </svg>
                                             <span>{{ $appointment->starts_at->timezone('Asia/Manila')->format('F d, Y') }}</span>
-                                        </div>
-
-                                        <div class="flex items-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 8v4l3 3" />
-                                            </svg>
-                                            <span>{{ $appointment->starts_at->timezone('Asia/Manila')->format('h:i A') }} -
-                                                {{ $appointment->ends_at->timezone('Asia/Manila')->format('h:i A') }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -246,10 +213,10 @@
 
                     // replace cancel button with cancelled badge
                     form.replaceWith(`
-                                                        <div class="text-center">
-                                                            <span class="badge badge-error">Cancelled</span>
-                                                        </div>
-                                                    `);
+                                                                        <div class="text-center">
+                                                                            <span class="badge badge-error">Cancelled</span>
+                                                                        </div>
+                                                                    `);
                 },
                 error: function (xhr) {
                     $.toast({

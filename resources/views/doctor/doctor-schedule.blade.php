@@ -112,56 +112,84 @@
             let deleteForm = null;
             let deleteHistoryId = null;
 
-            let currentYear = {{ $currentYear }};
-            let currentMonth = {{ $currentMonth }};
+            // Parse integers explicitly to avoid any leading-zero / octal pitfalls
+            let currentYear = parseInt("{{ $currentYear }}", 10);
+            let currentMonth = parseInt("{{ $currentMonth }}", 10); // 1..12
             let selectedDate = null;
 
+            function pad(n) { return String(n).padStart(2, '0'); }
+
             function loadCalendar(year, month) {
+                // month is 1..12
                 $('#calendarGrid').html('<div class="col-span-7 text-center text-gray-500">Loading...</div>');
                 $('#currentMonthLabel').text(new Date(year, month - 1).toLocaleString('default', { month: 'long', year: 'numeric' }));
 
-                $.get("{{ route('doctor.schedule.month') }}", { year, month })
+                // send month padded (e.g. "08") to be safe for server parsing
+                $.get("{{ route('doctor.schedule.month') }}", { year, month: pad(month) })
                     .done(function (res) {
                         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
                         let html = '';
 
+                        // Day headers
                         dayNames.forEach(d => {
                             html += `<div class="text-center font-semibold text-gray-600 py-1">${d}</div>`;
                         });
 
+                        // If no dates returned, show empty grid message
+                        if (!res.dates || res.dates.length === 0) {
+                            // produce blank month with same number of cells as days in month
+                            // but simpler: show message spanning all columns
+                            html += `<div class="col-span-7 text-center text-gray-500 py-6">No dates</div>`;
+                            $('#calendarGrid').html(html);
+                            return;
+                        }
+
+                        // compute weekday offset for the first date so the days align under correct weekdays
+                        // use the server-provided first date (res.dates[0]) - ensure we parse as midnight ISO to avoid tz shift
+                        const firstDateIso = res.dates[0] + 'T00:00:00';
+                        const firstWeekday = new Date(firstDateIso).getDay(); // 0..6
+
+                        // Add empty cells for offset
+                        for (let i = 0; i < firstWeekday; i++) {
+                            html += `<div class="min-h-[170px] p-2 rounded-lg border bg-gray-100"></div>`;
+                        }
+
+                        // Now render actual date cells
                         res.dates.forEach(date => {
-                            const isPast = new Date(date) < new Date(new Date().toISOString().split('T')[0]);
+                            const iso = date + 'T00:00:00';
+                            // compare at midnight to avoid timezone issues
+                            const isPast = new Date(iso) < new Date(new Date().toISOString().split('T')[0] + 'T00:00:00');
                             const daySchedules = res.schedules.filter(s => s.date === date);
                             const hasMorning = daySchedules.some(s => s.start_time === '08:00:00' && s.end_time === '12:00:00');
                             const hasAfternoon = daySchedules.some(s => s.start_time === '13:00:00' && s.end_time === '17:00:00');
 
                             html += `<div class="day-cell relative border rounded-lg p-2 flex flex-col cursor-pointer hover:shadow-md transition duration-200 ${isPast ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'}"
-                                                        data-date="${date}" data-disabled="${isPast ? 'true' : 'false'}" style="min-height:170px;">
-                                                        <div class="text-sm font-semibold text-center mb-1 ${isPast ? 'text-gray-400' : 'text-gray-800'}">${new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
-                                                        <div class="text-center text-xs mb-1">
-                                                            ${isPast ? '<span class="text-red-500 font-medium">Unavailable</span>' : (hasMorning || hasAfternoon ? '<span class="text-green-600 font-medium">Available</span>' : '<span class="text-yellow-500 font-medium">No Schedule</span>')}
-                                                        </div>
-                                                        <div class="flex flex-col gap-1 mt-1">
-                                                            ${hasMorning ? `<div class="bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs flex justify-between items-center">
-                                                                <span>Morning</span>
-                                                                ${(!isPast && role === 'doctor' && daySchedules.find(s => s.start_time === '08:00:00') ? `
-                                                                    <form method="POST" action="/doctor/schedule/${daySchedules.find(s => s.start_time === '08:00:00').id}" class="delete-schedule-form">
-                                                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                                                        <input type="hidden" name="_method" value="DELETE">
-                                                                        <button type="button" class="text-red-500 delete-btn">✕</button>
-                                                                    </form>` : '')}
-                                                            </div>` : ''}
-                                                            ${hasAfternoon ? `<div class="bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs flex justify-between items-center">
-                                                                <span>Afternoon</span>
-                                                                ${(!isPast && role === 'doctor' && daySchedules.find(s => s.start_time === '13:00:00') ? `
-                                                                    <form method="POST" action="/doctor/schedule/${daySchedules.find(s => s.start_time === '13:00:00').id}" class="delete-schedule-form">
-                                                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                                                        <input type="hidden" name="_method" value="DELETE">
-                                                                        <button type="button" class="text-red-500 delete-btn">✕</button>
-                                                                    </form>` : '')}
-                                                            </div>` : ''}
-                                                        </div>
-                                                    </div>`;
+                                                                    data-date="${date}" data-disabled="${isPast ? 'true' : 'false'}" style="min-height:170px;">
+                                                                    <div class="text-sm font-semibold text-center mb-1 ${isPast ? 'text-gray-400' : 'text-gray-800'}">${new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
+                                                                    <div class="text-center text-xs mb-1">
+                                                                        ${isPast ? '<span class="text-red-500 font-medium">Unavailable</span>' : (hasMorning || hasAfternoon ? '<span class="text-green-600 font-medium">Available</span>' : '<span class="text-yellow-500 font-medium">No Schedule</span>')}
+                                                                    </div>
+                                                                    <div class="flex flex-col gap-1 mt-1">
+                                                                        ${hasMorning ? `<div class="bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs flex justify-between items-center">
+                                                                            <span>Morning</span>
+                                                                            ${(!isPast && role === 'doctor' && daySchedules.find(s => s.start_time === '08:00:00') ? `
+                                                                                <form method="POST" action="/doctor/schedule/${daySchedules.find(s => s.start_time === '08:00:00').id}" class="delete-schedule-form">
+                                                                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                                                    <input type="hidden" name="_method" value="DELETE">
+                                                                                    <button type="button" class="text-red-500 delete-btn">✕</button>
+                                                                                </form>` : '')}
+                                                                        </div>` : ''}
+                                                                        ${hasAfternoon ? `<div class="bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs flex justify-between items-center">
+                                                                            <span>Afternoon</span>
+                                                                            ${(!isPast && role === 'doctor' && daySchedules.find(s => s.start_time === '13:00:00') ? `
+                                                                                <form method="POST" action="/doctor/schedule/${daySchedules.find(s => s.start_time === '13:00:00').id}" class="delete-schedule-form">
+                                                                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                                                    <input type="hidden" name="_method" value="DELETE">
+                                                                                    <button type="button" class="text-red-500 delete-btn">✕</button>
+                                                                                </form>` : '')}
+                                                                        </div>` : ''}
+                                                                    </div>
+                                                                </div>`;
                         });
 
                         $('#calendarGrid').html(html);
@@ -276,9 +304,9 @@
                         } else {
                             res.forEach(s => {
                                 html += `<div class="p-2 bg-gray-100 rounded flex justify-between items-center">
-                                                    <span>${s.label}</span>
-                                                    <button type="button" class="text-red-500 delete-history-btn" data-id="${s.id}">✕</button>
-                                                </div>`;
+                                                                <span>${s.label}</span>
+                                                                <button type="button" class="text-red-500 delete-history-btn" data-id="${s.id}">✕</button>
+                                                            </div>`;
                             });
                         }
                         $('#historyList').html(html);
@@ -303,7 +331,7 @@
                 loadHistory(doctorId, selectedDate);
             });
 
-            // Delete schedule
+            // Delete schedule (calendar slot delete)
             $(document).on('click', '.delete-btn', function (e) {
                 e.stopPropagation();
                 deleteForm = $(this).closest('form');
@@ -390,18 +418,15 @@
                 }
             });
 
-            // Delete from history list
+            // Delete from history list (opens modal and sets id)
             $(document).on('click', '.delete-history-btn', function (e) {
-                e.stopPropagation(); // prevent opening modal
+                e.stopPropagation(); // prevent opening add modal
                 deleteHistoryId = $(this).data('id');
 
                 if (!deleteHistoryId) return;
 
-                // Open the same modal
                 $('#deleteScheduleModal').addClass('modal-open');
             });
-
-
 
         });
     </script>

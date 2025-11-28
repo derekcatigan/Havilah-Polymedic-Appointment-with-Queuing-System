@@ -9,6 +9,7 @@ use App\Http\Controllers\DoctorProfileController;
 use App\Http\Controllers\DoctorScheduleController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\HomeDoctorController;
+use App\Http\Controllers\HomeQueueController;
 use App\Http\Controllers\ManageAccountController;
 use App\Http\Controllers\ManageADSController;
 use App\Http\Controllers\ManageAppointmentController;
@@ -133,6 +134,8 @@ Route::middleware('auth')->group(function () {
             ->name('appointment.deleteHistory');
 
         Route::get('/queue/count', [AppointmentController::class, 'queueCount']);
+
+        Route::get('/home/queue-information', [HomeQueueController::class, 'index'])->name('home.queue');
     });
 
     // Shared Routes For All Roles
