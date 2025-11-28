@@ -31,7 +31,7 @@
     </header>
 
     <main>
-        <section class="flex justify-center items-center">
+        <section class="flex justify-center items-center h-screen">
             <div class="bg-white border border-gray-200 rounded shadow-xl p-10 w-[500px]">
                 <div class="flex items-center gap-3 mb-5">
                     <img src="{{ asset('assets/images/logo/logoH.png') }}" alt="Havilah Polymedic Logo"
