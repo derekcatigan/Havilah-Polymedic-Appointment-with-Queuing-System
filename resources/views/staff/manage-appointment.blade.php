@@ -57,7 +57,7 @@
                                     <div class="flex flex-col">
                                         {{ $appointment->patient->name }}
                                         <span class="text-sm text-gray-500">
-                                            {{ $appointment->starts_at->format('M d, Y h:i A') }}
+                                            {{ $appointment->starts_at->format('M d, Y') }}
                                         </span>
                                     </div>
                                 </div>

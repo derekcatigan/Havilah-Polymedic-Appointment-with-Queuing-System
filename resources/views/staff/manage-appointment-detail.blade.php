@@ -54,7 +54,7 @@
         <div class="card bg-base-100 shadow-md border border-base-200">
             <div class="card-body space-y-4">
                 <h3 class="text-lg font-semibold mb-2">Appointment Information</h3>
-                <p><span class="font-medium">Date:</span> {{ $appointment->starts_at->format('M d, Y h:i A') }}</p>
+                <p><span class="font-medium">Date:</span> {{ $appointment->starts_at->format('M d, Y') }}</p>
                 <p>
                     <span class="font-medium">Status:</span>
                     <span @class([
