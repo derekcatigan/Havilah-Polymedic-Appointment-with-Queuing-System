@@ -20,48 +20,52 @@ class AppointmentController extends Controller
      */
     public function book(Request $request, $doctorId)
     {
-        // Validate request data
+        // Validate incoming request
         $validated = $request->validate([
-            'reason' => 'nullable|string|max:1000',
+            'reason'    => 'nullable|string|max:1000',
             'starts_at' => 'required|date_format:Y-m-d H:i',
-            'ends_at' => 'required|date_format:Y-m-d H:i|after:starts_at',
+            'ends_at'   => 'required|date_format:Y-m-d H:i|after:starts_at',
         ]);
 
         $doctor = User::with('doctor')->findOrFail($doctorId);
-        $userId = Auth::id();
+        $patientId = Auth::id();
 
-        // Ensure doctor is available for booking
+        // Ensure doctor is accepting bookings
         if (!$doctor->doctor || $doctor->doctor->status !== 'available') {
             return response()->json([
                 'message' => 'This doctor is currently unavailable for booking.',
             ], 400);
         }
 
-        // Check for conflicting appointments
-        // $conflict = Appointment::where('doctor_user_id', $doctorId)
-        //     ->where(function ($query) use ($validated) {
-        //         $query->whereBetween('starts_at', [$validated['starts_at'], $validated['ends_at']])
-        //             ->orWhereBetween('ends_at', [$validated['starts_at'], $validated['ends_at']]);
-        //     })
-        //     ->exists();
+        /**
+         * ====================================================
+         *  🔒 LIMIT RULE: A patient can only book 2 doctors
+         * ====================================================
+         */
+        $alreadyBookedDoctors = Appointment::where('patient_user_id', $patientId)
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->pluck('doctor_user_id')
+            ->unique()
+            ->toArray();
 
-        // if ($conflict) {
-        //     return response()->json([
-        //         'message' => 'This time slot is already booked. Please choose another one.',
-        //     ], 409);
-        // }
+        // If patient already booked 2 different doctors AND new doctor is not one of them
+        if (count($alreadyBookedDoctors) >= 2 && !in_array($doctorId, $alreadyBookedDoctors)) {
+            return response()->json([
+                'message' => 'You can only book a maximum of 2 different doctors.',
+            ], 400);
+        }
 
-        // Convert time to proper timezone (Asia/Manila)
+        // Convert date to Manila timezone
         $start = Carbon::createFromFormat('Y-m-d H:i', $validated['starts_at'], 'Asia/Manila');
         $end   = Carbon::createFromFormat('Y-m-d H:i', $validated['ends_at'], 'Asia/Manila');
 
         // Store appointment
         $appointment = Appointment::create([
-            'doctor_user_id' => $doctor->id,
-            'patient_user_id' => $userId,
-            'starts_at' => $start,
-            'ends_at' => $end,
-            'reason' => $validated['reason'] ?? null,
+            'doctor_user_id'  => $doctor->id,
+            'patient_user_id' => $patientId,
+            'starts_at'       => $start,
+            'ends_at'         => $end,
+            'reason'          => $validated['reason'] ?? null,
         ]);
 
         return response()->json([
@@ -70,8 +74,10 @@ class AppointmentController extends Controller
         ]);
     }
 
+
+
     /**
-     * Cancel an existing appointment.
+     * Cancel an appointment.
      */
     public function cancel($id)
     {
@@ -94,8 +100,10 @@ class AppointmentController extends Controller
         }
     }
 
+
+
     /**
-     * Display the logged-in patient's appointment history.
+     * List patient's appointments.
      */
     public function myAppointments()
     {
@@ -107,8 +115,10 @@ class AppointmentController extends Controller
         return view('patient.my-appointments', compact('appointments'));
     }
 
+
+
     /**
-     * Permanently delete an appointment from history.
+     * Delete appointment history.
      */
     public function deleteHistory($id)
     {
@@ -131,11 +141,16 @@ class AppointmentController extends Controller
         }
     }
 
+
+
+    /**
+     * Count confirmed appointments (queue count).
+     */
     public function queueCount(Request $request)
     {
         $request->validate([
             'doctor_id' => 'required|exists:users,id',
-            'date' => 'required|date',
+            'date'      => 'required|date',
         ]);
 
         $count = Appointment::where('doctor_user_id', $request->doctor_id)
