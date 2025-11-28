@@ -1,8 +1,40 @@
+{{-- resources\views\staff\manage-queue.blade.php --}}
 @extends('layout.layout')
 
 @section('content')
     <div class="p-6 bg-gray-50 min-h-screen">
         <h2 class="text-3xl font-bold text-gray-800 mb-6">Queue Management</h2>
+
+        {{-- FILTER BAR --}}
+        <form method="GET" class="mb-6 bg-white p-4 rounded-lg shadow flex flex-wrap gap-4 items-end">
+
+            {{-- Search Patient --}}
+            <div class="flex flex-col">
+                <label class="text-sm font-semibold text-gray-600 mb-1">Search Patient</label>
+                <input type="text" name="search" value="{{ $search }}" class="input w-full"
+                    placeholder="Enter patient name..." onchange="this.form.submit()">
+            </div>
+
+            {{-- Date Filter --}}
+            <div class="flex flex-col">
+                <label class="text-sm font-semibold text-gray-600 mb-1">Filter by Date</label>
+                <input type="date" name="date" value="{{ $date }}" class="input w-full" onchange="this.form.submit()">
+            </div>
+
+            {{-- Reset Button --}}
+            <div>
+                <button type="submit" class="btn btn-primary">
+                    Apply Filters
+                </button>
+            </div>
+
+            {{-- Clear --}}
+            <div>
+                <a href="{{ route('staff.queue.index') }}" class="btn btn-soft btn-warning">
+                    Reset
+                </a>
+            </div>
+        </form>
 
         {{-- Current Queue Card --}}
         <div class="mb-6">

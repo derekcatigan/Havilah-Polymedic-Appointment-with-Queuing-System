@@ -14,25 +14,35 @@ class StaffQueueController extends Controller
     public function index(Request $request)
     {
         $staff = Auth::user();
-
-        // Only queues of the assigned doctor
         $doctorId = $staff->doctor_user_id;
+
+        // Filters
+        $search = $request->input('search');
+        $date = $request->input('date', today()->format('Y-m-d')); // default today
 
         $queues = Queue::with(['patient', 'doctor'])
             ->where('doctor_user_id', $doctorId)
-            ->whereDate('queue_date', today())
+            ->when($date, function ($q) use ($date) {
+                $q->whereDate('queue_date', $date);
+            })
+            ->when($search, function ($q) use ($search) {
+                $q->whereHas('patient', function ($patientQuery) use ($search) {
+                    $patientQuery->where('name', 'like', "%{$search}%");
+                });
+            })
             ->orderBy('queue_number')
             ->get();
 
         $currentQueue = Queue::with('patient')
             ->where('doctor_user_id', $doctorId)
             ->whereIn('queue_status', ['called', 'in_progress'])
-            ->whereDate('queue_date', today())
+            ->whereDate('queue_date', $date)
             ->orderBy('queue_number')
             ->first();
 
-        return view('staff.manage-queue', compact('queues', 'currentQueue'));
+        return view('staff.manage-queue', compact('queues', 'currentQueue', 'search', 'date'));
     }
+
 
     public function call(Queue $queue)
     {
