@@ -134,7 +134,7 @@
                 </li>
 
                 {{-- Admin Examination List Link --}}
-                <li class="list-items">
+                {{-- <li class="list-items">
                     <a href="{{ route('admin.manage.services') }}"
                         class="link-items text-sm {{ Request::routeIs('admin.manage.services', 'admin.services.create', 'admin.services.edit') ? 'active' : '' }}">
                         <span>
@@ -146,7 +146,7 @@
                         </span>
                         Examination List
                     </a>
-                </li>
+                </li> --}}
 
                 {{-- Manage Schedule --}}
                 <li class="list-items">

@@ -69,7 +69,7 @@
                 </p>
 
                 {{-- Service Type Selection --}}
-                <div class="form-control w-full md:w-1/2">
+                {{-- <div class="form-control w-full md:w-1/2">
                     <label class="label">
                         <span class="label-text font-medium">Examination List</span>
                     </label>
@@ -80,12 +80,12 @@
                         <select name="service_type_id" class="select select-bordered w-full" required>
                             <option value="">-- Choose Examination Type --</option>
                             @foreach ($serviceTypes as $service)
-                                <option value="{{ $service->id }}">{{ $service->short_description }}</option>
+                            <option value="{{ $service->id }}">{{ $service->short_description }}</option>
                             @endforeach
                         </select>
                         <button type="submit" class="btn btn-outline btn-primary">Add</button>
                     </form>
-                </div>
+                </div> --}}
             </div>
         </div>
 

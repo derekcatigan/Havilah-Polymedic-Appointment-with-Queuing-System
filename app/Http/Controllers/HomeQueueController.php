@@ -17,11 +17,16 @@ class HomeQueueController extends Controller
             ->latest()
             ->first();
 
-        $currentQueues = Queue::with('doctor')
-            ->whereDate('queue_date', today())
-            ->whereIn('queue_status', ['called', 'in_progress'])
-            ->get()
-            ->groupBy('doctor_user_id');
+        $currentQueues = collect();
+
+        if ($patientQueue) {
+            $currentQueues = Queue::with('doctor')
+                ->where('doctor_user_id', $patientQueue->doctor_user_id)
+                ->whereDate('queue_date', today())
+                ->whereIn('queue_status', ['called', 'in_progress'])
+                ->get()
+                ->groupBy('doctor_user_id');
+        }
 
         return view('patient.queue-page', compact('patientQueue', 'currentQueues'));
     }

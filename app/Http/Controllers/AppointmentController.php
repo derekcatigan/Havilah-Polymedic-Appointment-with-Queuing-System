@@ -105,17 +105,28 @@ class AppointmentController extends Controller
     /**
      * List patient's appointments.
      */
-    public function myAppointments()
+    public function myAppointments(Request $request)
     {
+        $userId = Auth::id();
+
+        // Fix: use Carbon (not DatePoint)
+        $today = Carbon::now()->toDateString();
+
+        // If no date is selected, use today
+        $selectedDate = $request->input('date', $today);
+
         $appointments = Appointment::with(['doctor.doctor'])
-            ->where('patient_user_id', Auth::id())
-            ->orderByDesc('created_at')
+            ->where('patient_user_id', $userId)
+            ->where('status', '!=', 'cancelled')   // <-- NEW: exclude cancelled
+            ->whereDate('starts_at', $selectedDate)
+            ->orderBy('starts_at', 'asc')
             ->get();
 
-        return view('patient.my-appointments', compact('appointments'));
+        return view('patient.my-appointments', [
+            'appointments' => $appointments,
+            'selectedDate' => $selectedDate,
+        ]);
     }
-
-
 
     /**
      * Delete appointment history.
