@@ -53,10 +53,9 @@
                             </button>
                         </form>
 
-                    @elseif ($appointment && $appointment->status === 'confirmed')
+                        {{-- @elseif ($appointment && $appointment->status === 'confirmed') --}}
                         {{-- Already booked --}}
-                        <button class="btn btn-block btn-sm btn-success mt-5" disabled>Booked</button>
-
+                        {{-- <button class="btn btn-block btn-sm btn-success mt-5" disabled>Booked</button> --}}
                     @else
                         {{-- Booking form --}}
                         @if ($users->doctor->status === 'available')
@@ -181,22 +180,22 @@
                     const buttonHtml = !disabled ? `<button type="button" class="select-date-btn btn btn-sm btn-outline w-full text-xs" data-date="${iso}">Select date</button>` : '';
 
                     const dayHtml = `
-                        <div class="min-h-[120px] relative p-3 rounded-lg border flex flex-col justify-between cursor-pointer transition ${cellClasses}"
-                             data-date="${iso}" data-disabled="${disabled ? '1' : '0'}">
-                            <div class="flex items-start justify-between">
-                                <div class="text-sm font-semibold">${d}</div>
-                                ${past ? '<div class="text-xs text-gray-400">Past</div>' : (!hasSchedule ? '<div class="text-xs text-red-500">No Schedule</div>' : '')}
-                            </div>
+                                <div class="min-h-[120px] relative p-3 rounded-lg border flex flex-col justify-between cursor-pointer transition ${cellClasses}"
+                                     data-date="${iso}" data-disabled="${disabled ? '1' : '0'}">
+                                    <div class="flex items-start justify-between">
+                                        <div class="text-sm font-semibold">${d}</div>
+                                        ${past ? '<div class="text-xs text-gray-400">Past</div>' : (!hasSchedule ? '<div class="text-xs text-red-500">No Schedule</div>' : '')}
+                                    </div>
 
-                            <div class="mt-2">
-                                <span class="text-xs font-medium status-label ${statusClassText}">${statusLabel}</span>
-                            </div>
+                                    <div class="mt-2">
+                                        <span class="text-xs font-medium status-label ${statusClassText}">${statusLabel}</span>
+                                    </div>
 
-                            <div class="mt-3 text-center">
-                                ${buttonHtml}
-                            </div>
-                        </div>
-                    `;
+                                    <div class="mt-3 text-center">
+                                        ${buttonHtml}
+                                    </div>
+                                </div>
+                            `;
                     $calendarEl.append(dayHtml);
                 }
             }
