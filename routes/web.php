@@ -31,6 +31,12 @@ Route::get('/doctors/{specialty?}', [HomeDoctorController::class, 'index'])->nam
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'authIndex'])->name('login');
     Route::post('/authenticate', [AuthController::class, 'authenticate'])->name('auth.login');
+    Route::get('/forgot-password', [AuthController::class, 'forgotPasswordPage'])->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+
+    Route::get('/reset-password/{token}', [AuthController::class, 'resetPasswordPage'])->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'updatePassword'])->name('password.update');
+
 
     Route::get('/register', [AuthController::class, 'regisIndex'])->name('register');
     Route::post('/register/patient', [AuthController::class, 'regisPatient'])->name('auth.register');

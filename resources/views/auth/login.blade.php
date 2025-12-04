@@ -63,7 +63,9 @@
                             </div>
 
                             <div>
-                                <a href="#" class="text-sm text-blue-400">Forget password?</a>
+                                <a href="{{ route('password.request') }}" class="text-sm text-blue-400">
+                                    Forget password?
+                                </a>
                             </div>
                         </div>
                     </div>
