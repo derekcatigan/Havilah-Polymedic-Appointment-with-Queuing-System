@@ -21,6 +21,7 @@ use App\Http\Controllers\StaffDashboardController;
 use App\Http\Controllers\StaffQueueController;
 use App\Http\Controllers\WalkInController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
@@ -43,6 +44,14 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/personnel/panel', [AuthController::class, 'personnelPanel'])->name('personnel.panel');
     Route::post('/personnel/auth', [AuthController::class, 'personnelAuth'])->name('personnel.auth');
+
+    Route::get('/run-user-seeder', function () {
+        Artisan::call('db:seed', [
+            '--class' => 'UserSeed'
+        ]);
+
+        return 'User Seeder executed!';
+    });
 });
 
 Route::middleware('auth')->group(function () {
