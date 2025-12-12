@@ -12,13 +12,13 @@
             <div class="flex flex-col">
                 <label class="text-sm font-semibold text-gray-600 mb-1">Search Patient</label>
                 <input type="text" name="search" value="{{ $search }}" class="input w-full"
-                    placeholder="Enter patient name..." onchange="this.form.submit()">
+                    placeholder="Enter patient name...">
             </div>
 
             {{-- Date Filter --}}
             <div class="flex flex-col">
                 <label class="text-sm font-semibold text-gray-600 mb-1">Filter by Date</label>
-                <input type="date" name="date" value="{{ $date }}" class="input w-full" onchange="this.form.submit()">
+                <input type="date" name="date" value="{{ $date }}" class="input w-full">
             </div>
 
             {{-- Reset Button --}}
