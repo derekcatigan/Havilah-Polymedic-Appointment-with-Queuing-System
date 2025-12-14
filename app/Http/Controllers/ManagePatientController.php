@@ -7,6 +7,7 @@ use App\Models\Appointment;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -16,11 +17,25 @@ class ManagePatientController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::query();
+        $user = Auth::user();
 
-        $query->whereIn('role', ['patient']);
+        // Base query: patients only
+        $query = User::where('role', 'patient');
 
-        if ($request->has('search') && !empty($request->search)) {
+        if ($user->role->value === 'doctor') {
+            // Doctor: patients who have appointments with this doctor
+            $query->whereHas('appointmentsAsPatient', function ($q) use ($user) {
+                $q->where('doctor_user_id', $user->id);
+            });
+        } elseif ($user->role->value === 'staff') {
+            // Staff: patients who have appointments with staff's assigned doctor
+            $query->whereHas('appointmentsAsPatient', function ($q) use ($user) {
+                $q->where('doctor_user_id', $user->doctor_user_id);
+            });
+        }
+
+        // Search filter
+        if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -28,10 +43,12 @@ class ManagePatientController extends Controller
             });
         }
 
-        $patients = $query->latest()->paginate(10);
+        $patients = $query->latest()->paginate(10)->withQueryString();
 
         return view('admin.manage-patient', compact('patients'));
     }
+
+
 
     public function store(Request $request)
     {
