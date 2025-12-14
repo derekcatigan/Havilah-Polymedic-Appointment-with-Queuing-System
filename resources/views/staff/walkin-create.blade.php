@@ -1,37 +1,71 @@
-{{-- resources\views\staff\walkin-create.blade.php --}}
+{{-- resources/views/staff/walkin-create.blade.php --}}
 @extends('layout.layout')
 
 @section('content')
-    <div class="max-w-2xl mx-auto p-6 bg-white shadow-md rounded-xl">
-        <h2 class="text-2xl font-bold mb-4">Add Walk-in Appointment</h2>
+    <div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-xl bg-white border border-gray-300 rounded shadow-lg">
 
-        <form action="{{ route('walkin.store') }}" method="POST" class="space-y-4">
-            @csrf
-
-            {{-- Patient Name --}}
-            <div>
-                <label class="block font-medium">Patient Name</label>
-                <input type="text" name="patient_name" class="input input-bordered w-full" required>
+            {{-- Header --}}
+            <div class="px-6 py-4 border-b">
+                <h2 class="text-xl font-semibold text-gray-800">
+                    Walk-in Appointment
+                </h2>
+                <p class="text-sm text-gray-500">
+                    Register a patient and assign them to a doctor
+                </p>
             </div>
 
-            {{-- Select Doctor --}}
-            <div>
-                <label class="block font-medium">Assign Doctor</label>
-                <select name="doctor_user_id" class="select select-bordered w-full" required>
-                    <option value="">-- Select Doctor --</option>
-                    @foreach($doctors as $doctor)
-                        <option value="{{ $doctor->id }}">
-                            {{ $doctor->name }} ({{ ucfirst($doctor->doctor->specialty ?? 'N/A') }})
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            {{-- Form --}}
+            <form action="{{ route('walkin.store') }}" method="POST" class="p-6 space-y-5">
+                @csrf
 
-            {{-- Actions --}}
-            <div class="flex justify-end gap-3">
-                <a href="{{ route('manage.appointment') }}" class="btn">Cancel</a>
-                <button type="submit" class="btn btn-success">Book Walk-in</button>
-            </div>
-        </form>
+                {{-- Patient Name --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Patient Name
+                    </label>
+                    <input type="text" name="patient_name" placeholder="Enter full name" class="input input-bordered w-full"
+                        required>
+                </div>
+
+                {{-- Doctor --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Assigned Doctor
+                    </label>
+
+                    <select name="doctor_user_id" class="select select-bordered w-full" required onchange="
+                                document.getElementById('specialtyBadge').innerText =
+                                this.options[this.selectedIndex].dataset.specialty || '';
+                            ">
+                        <option value="">Select doctor</option>
+                        @foreach($doctors as $doctor)
+                            <option value="{{ $doctor->id }}" data-specialty="{{ ucfirst($doctor->doctor?->specialty ?? '') }}">
+                                {{ $doctor->name }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    {{-- Specialty Badge --}}
+                    <div class="mt-2">
+                        <span id="specialtyBadge" class="badge badge-accent badge-soft border border-green-500"></span>
+                    </div>
+                </div>
+
+                {{-- Divider --}}
+                <div class="border-t pt-4 flex justify-between items-center">
+
+                    {{-- Cancel --}}
+                    <a href="{{ route('manage.appointment') }}" class="btn btn-ghost">
+                        Cancel
+                    </a>
+
+                    {{-- Submit --}}
+                    <button type="submit" class="btn btn-success px-6">
+                        Book Walk-in
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 @endsection

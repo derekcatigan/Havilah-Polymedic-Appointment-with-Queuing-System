@@ -15,26 +15,21 @@
                     placeholder="Enter patient name...">
             </div>
 
-            {{-- Date Filter --}}
-            <div class="flex flex-col">
-                <label class="text-sm font-semibold text-gray-600 mb-1">Filter by Date</label>
-                <input type="date" name="date" value="{{ $date }}" class="input w-full">
-            </div>
-
-            {{-- Reset Button --}}
+            {{-- Search --}}
             <div>
                 <button type="submit" class="btn btn-primary">
-                    Apply Filters
+                    Search
                 </button>
             </div>
 
-            {{-- Clear --}}
+            {{-- Reset --}}
             <div>
                 <a href="{{ route('staff.queue.index') }}" class="btn btn-soft btn-warning">
                     Reset
                 </a>
             </div>
         </form>
+
 
         {{-- Current Queue Card --}}
         <div class="mb-6">

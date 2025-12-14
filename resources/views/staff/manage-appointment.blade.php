@@ -3,27 +3,38 @@
 
 @section('content')
     {{-- Header --}}
-    <div class="flex items-center flex-wrap p-5 gap-3">
-        <div>
-            <form method="GET" class="flex items-center gap-2">
-                <label class="input">
-                    <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none"
-                            stroke="currentColor">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <path d="m21 21-4.3-4.3"></path>
-                        </g>
-                    </svg>
-                    <input type="text" name="search" class="w-full" placeholder="Search" value="{{ request('search') }}"
-                        autocomplete="off" />
-                </label>
+    <div class="p-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 
-                <button type="submit" class="btn btn-sm btn-primary">Search</button>
-            </form>
-        </div>
+        {{-- Left: Filters --}}
+        <form method="GET" class="flex flex-wrap items-center gap-2">
 
-        {{-- Walk-in Button --}}
-        <div>
+            {{-- Search --}}
+            <label class="input w-full md:w-64">
+                <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.3-4.3"></path>
+                    </g>
+                </svg>
+                <input type="text" name="search" class="w-full" placeholder="Search" value="{{ request('search') }}"
+                    autocomplete="off" />
+            </label>
+
+            {{-- Date --}}
+            <input type="date" name="date" value="{{ request('date', now()->toDateString()) }}"
+                class="input input-bordered" />
+
+            <button type="submit" class="btn btn-sm btn-primary">
+                Search
+            </button>
+
+            <a href="{{ route('manage.appointment') }}" class="btn btn-sm btn-error">
+                Reset
+            </a>
+        </form>
+
+        {{-- Right: Walk-in --}}
+        <div class="flex justify-end">
             <a href="{{ route('walkin.create') }}" class="btn btn-sm btn-success">
                 + Walk-in
             </a>

@@ -16,14 +16,13 @@ class StaffQueueController extends Controller
         $staff = Auth::user();
         $doctorId = $staff->doctor_user_id;
 
-        // Filters
+        // Search filter only
         $search = $request->input('search');
-        $date = $request->input('date', today()->format('Y-m-d')); // default: today
 
-        // MAIN QUEUE LIST (exclude completed + filter date + search)
+        // MAIN QUEUE LIST
         $queues = Queue::with(['patient', 'doctor'])
             ->where('doctor_user_id', $doctorId)
-            ->whereDate('queue_date', $date)
+            ->whereDate('queue_date', today())
             ->whereNotIn('queue_status', ['completed', 'cancelled'])
             ->when($search, function ($q) use ($search) {
                 $q->whereHas('patient', function ($patientQuery) use ($search) {
@@ -33,17 +32,17 @@ class StaffQueueController extends Controller
             ->orderBy('queue_number')
             ->get();
 
-
-        // CURRENT QUEUE (called or in progress for today ONLY)
+        // CURRENT QUEUE (called / in progress TODAY)
         $currentQueue = Queue::with('patient')
             ->where('doctor_user_id', $doctorId)
-            ->whereDate('queue_date', $date)
+            ->whereDate('queue_date', today())
             ->whereIn('queue_status', ['called', 'in_progress'])
             ->orderBy('queue_number')
             ->first();
 
-        return view('staff.manage-queue', compact('queues', 'currentQueue', 'search', 'date'));
+        return view('staff.manage-queue', compact('queues', 'currentQueue', 'search'));
     }
+
 
     public function call(Queue $queue)
     {

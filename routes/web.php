@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Session;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/doctors/{specialty?}', [HomeDoctorController::class, 'index'])->name('home.doctor');
+Route::get('/about-us', fn() => view('about-us'))->name('about.page');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'authIndex'])->name('login');

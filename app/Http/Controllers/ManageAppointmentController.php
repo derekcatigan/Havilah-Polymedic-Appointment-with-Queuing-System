@@ -14,38 +14,39 @@ class ManageAppointmentController extends Controller
 {
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $user   = Auth::user();
         $search = $request->input('search');
+        $date   = $request->input('date', today()->toDateString());
 
         $appointments = Appointment::with(['patient', 'doctor'])
+
+            // Staff restriction (ALWAYS applied)
             ->when($user->role->value === 'staff', function ($query) use ($user) {
-                // Always apply this for staff
                 $query->where('doctor_user_id', $user->doctor_user_id);
             })
-            ->when($search, function ($query, $search) use ($user) {
 
-                // Apply search but still respect doctor filtering
-                $query->where(function ($q) use ($search, $user) {
+            // Date filter (starts_at)
+            ->whereDate('starts_at', $date)
 
+            // Search filter
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->whereHas('patient', function ($sub) use ($search) {
                         $sub->where('name', 'like', "%{$search}%");
                     })
                         ->orWhereHas('doctor', function ($sub) use ($search) {
                             $sub->where('name', 'like', "%{$search}%");
                         });
-
-                    // If staff, don't allow pulling appointments from other doctors
-                    if ($user->role->value === 'staff') {
-                        $q->where('doctor_user_id', $user->doctor_user_id);
-                    }
                 });
             })
-            ->latest()
+
+            ->orderBy('starts_at')
             ->paginate(10)
             ->withQueryString();
 
         return view('staff.manage-appointment', compact('appointments'));
     }
+
 
     public function show(Appointment $appointment)
     {

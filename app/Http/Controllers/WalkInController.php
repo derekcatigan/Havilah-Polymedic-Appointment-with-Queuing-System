@@ -7,6 +7,7 @@ use App\Models\Queue;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 
@@ -14,7 +15,14 @@ class WalkInController extends Controller
 {
     public function create()
     {
-        $doctors = User::where('role', 'doctor')
+        $user = Auth::user();
+
+        $doctors = ($user->role->value === 'staff')
+            ? User::where('id', $user->doctor_user_id)
+            ->where('role', 'doctor')
+            ->with('doctor')
+            ->get()
+            : User::where('role', 'doctor')
             ->with('doctor')
             ->get();
 
