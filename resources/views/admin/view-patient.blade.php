@@ -73,15 +73,14 @@
                                     <th>#</th>
                                     <th>Visit Date</th>
                                     <th>Status</th>
-                                    <th>Reason</th>
-                                    <th>Services</th>
+                                    <th>Purpose</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($appointments as $index => $appointment)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td>{{ $appointment->visit_datetime?->format('M d, Y h:i A') ?? 'N/A' }}</td>
+                                        <td>{{ $appointment->starts_at?->format('M d, Y') ?? 'N/A' }}</td>
                                         <td>
                                             @php
                                                 $statusColors = [
@@ -95,17 +94,17 @@
                                             </span>
                                         </td>
                                         <td>{{ $appointment->reason ?? '—' }}</td>
-                                        <td>
+                                        {{-- <td>
                                             @if ($appointment->serviceTypes->isEmpty())
-                                                <span class="text-gray-400">No Services</span>
+                                            <span class="text-gray-400">No Services</span>
                                             @else
-                                                <div class="flex flex-wrap gap-1">
-                                                    @foreach ($appointment->serviceTypes as $service)
-                                                        <span class="badge badge-outline badge-sm">{{ $service->short_description }}</span>
-                                                    @endforeach
-                                                </div>
+                                            <div class="flex flex-wrap gap-1">
+                                                @foreach ($appointment->serviceTypes as $service)
+                                                <span class="badge badge-outline badge-sm">{{ $service->short_description }}</span>
+                                                @endforeach
+                                            </div>
                                             @endif
-                                        </td>
+                                        </td> --}}
                                     </tr>
                                 @endforeach
                             </tbody>
