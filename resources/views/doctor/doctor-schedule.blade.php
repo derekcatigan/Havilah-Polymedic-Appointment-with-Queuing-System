@@ -38,7 +38,8 @@
                         @csrf
                         <input type="hidden" name="date" id="scheduleDate">
 
-                        @if(in_array($role, ['admin', 'staff']))
+                        @if($role === 'admin')
+                            {{-- Admin: can choose any doctor --}}
                             <label class="block text-sm font-medium mb-2">Select Doctor</label>
                             <select name="doctor_user_id" id="selectDoctorForModal" class="select w-full mb-3">
                                 <option value="">-- Select doctor --</option>
@@ -46,6 +47,16 @@
                                     <option value="{{ $doctor->id }}">{{ $doctor->name }}</option>
                                 @endforeach
                             </select>
+
+                        @elseif($role === 'staff')
+                            {{-- Staff: auto-assigned doctor --}}
+                            <input type="hidden" name="doctor_user_id" id="selectDoctorForModal"
+                                value="{{ auth()->user()->doctor_user_id }}">
+
+                            <div class="mb-3 text-sm text-gray-600">
+                                Assigned Doctor:
+                                <strong>{{ auth()->user()->doctor?->name }}</strong>
+                            </div>
                         @endif
 
                         <label class="flex items-center gap-2 mb-2">
@@ -69,7 +80,8 @@
                 <input type="radio" name="{{ $tabGroup }}" class="tab" id="{{ $tabGroup }}_history" aria-label="History" />
                 <div class="tab-content bg-base-100 border-base-300 p-4" id="{{ $tabGroup }}_history_content">
                     <div class="mb-3">
-                        @if(in_array($role, ['admin', 'staff']))
+                        @if($role === 'admin')
+                            {{-- Admin: can view any doctor --}}
                             <label class="block text-sm font-medium mb-2">Choose doctor to view history</label>
                             <select id="historyDoctorSelect" class="select w-full mb-3">
                                 <option value="">-- Select doctor --</option>
@@ -77,9 +89,23 @@
                                     <option value="{{ $doctor->id }}">{{ $doctor->name }}</option>
                                 @endforeach
                             </select>
+
+                        @elseif($role === 'staff')
+                            {{-- Staff: locked to assigned doctor --}}
+                            <input type="hidden" id="historyDoctorSelect" value="{{ auth()->user()->doctor_user_id }}">
+
+                            <div class="text-sm text-gray-600 mb-3">
+                                Viewing history for:
+                                <strong>{{ auth()->user()->doctor?->name }}</strong>
+                            </div>
+
                         @else
-                            <div class="text-sm text-gray-600 mb-2">Showing your schedule history for the selected date.</div>
+                            {{-- Doctor --}}
+                            <div class="text-sm text-gray-600 mb-2">
+                                Showing your schedule history for the selected date.
+                            </div>
                         @endif
+
                         <div id="historyList" class="flex flex-col gap-2"></div>
                     </div>
                     <div class="flex justify-end">
@@ -164,32 +190,32 @@
                             const hasAfternoon = daySchedules.some(s => s.start_time === '13:00:00' && s.end_time === '17:00:00');
 
                             html += `<div class="day-cell relative border rounded-lg p-2 flex flex-col cursor-pointer hover:shadow-md transition duration-200 ${isPast ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'}"
-                            data-date="${date}" data-disabled="${isPast ? 'true' : 'false'}" style="min-height:170px;">
-                            <div class="text-sm font-semibold text-center mb-1 ${isPast ? 'text-gray-400' : 'text-gray-800'}">${new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
-                            <div class="text-center text-xs mb-1">
-                                ${isPast ? '<span class="text-red-500 font-medium">Unavailable</span>' : (hasMorning || hasAfternoon ? '<span class="text-green-600 font-medium">Available</span>' : '<span class="text-yellow-500 font-medium">No Schedule</span>')}
-                            </div>
-                            <div class="flex flex-col gap-1 mt-1">
-                                ${hasMorning ? `<div class="bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs flex justify-between items-center">
-                                    <span>Morning</span>
-                                    ${(!isPast && role === 'doctor' && daySchedules.find(s => s.start_time === '08:00:00') ? `
-                                        <form method="POST" action="/doctor/schedule/${daySchedules.find(s => s.start_time === '08:00:00').id}" class="delete-schedule-form">
-                                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                            <input type="hidden" name="_method" value="DELETE">
-                                            <button type="button" class="text-red-500 delete-btn">✕</button>
-                                        </form>` : '')}
-                                </div>` : ''}
-                                ${hasAfternoon ? `<div class="bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs flex justify-between items-center">
-                                    <span>Afternoon</span>
-                                    ${(!isPast && role === 'doctor' && daySchedules.find(s => s.start_time === '13:00:00') ? `
-                                        <form method="POST" action="/doctor/schedule/${daySchedules.find(s => s.start_time === '13:00:00').id}" class="delete-schedule-form">
-                                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                            <input type="hidden" name="_method" value="DELETE">
-                                            <button type="button" class="text-red-500 delete-btn">✕</button>
-                                        </form>` : '')}
-                                </div>` : ''}
-                            </div>
-                        </div>`;
+                                                data-date="${date}" data-disabled="${isPast ? 'true' : 'false'}" style="min-height:170px;">
+                                                <div class="text-sm font-semibold text-center mb-1 ${isPast ? 'text-gray-400' : 'text-gray-800'}">${new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
+                                                <div class="text-center text-xs mb-1">
+                                                    ${isPast ? '<span class="text-red-500 font-medium">Unavailable</span>' : (hasMorning || hasAfternoon ? '<span class="text-green-600 font-medium">Available</span>' : '<span class="text-yellow-500 font-medium">No Schedule</span>')}
+                                                </div>
+                                                <div class="flex flex-col gap-1 mt-1">
+                                                    ${hasMorning ? `<div class="bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs flex justify-between items-center">
+                                                        <span>Morning</span>
+                                                        ${(!isPast && role === 'doctor' && daySchedules.find(s => s.start_time === '08:00:00') ? `
+                                                            <form method="POST" action="/doctor/schedule/${daySchedules.find(s => s.start_time === '08:00:00').id}" class="delete-schedule-form">
+                                                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                                <input type="hidden" name="_method" value="DELETE">
+                                                                <button type="button" class="text-red-500 delete-btn">✕</button>
+                                                            </form>` : '')}
+                                                    </div>` : ''}
+                                                    ${hasAfternoon ? `<div class="bg-blue-100 border border-blue-300 text-blue-700 rounded px-2 py-1 text-xs flex justify-between items-center">
+                                                        <span>Afternoon</span>
+                                                        ${(!isPast && role === 'doctor' && daySchedules.find(s => s.start_time === '13:00:00') ? `
+                                                            <form method="POST" action="/doctor/schedule/${daySchedules.find(s => s.start_time === '13:00:00').id}" class="delete-schedule-form">
+                                                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                                <input type="hidden" name="_method" value="DELETE">
+                                                                <button type="button" class="text-red-500 delete-btn">✕</button>
+                                                            </form>` : '')}
+                                                    </div>` : ''}
+                                                </div>
+                                            </div>`;
                         });
 
                         $('#calendarGrid').html(html);
@@ -313,9 +339,9 @@
                         } else {
                             res.forEach(s => {
                                 html += `<div class="p-2 bg-gray-100 rounded flex justify-between items-center">
-                                                                                                <span>${s.label}</span>
-                                                                                                <button type="button" class="text-red-500 delete-history-btn" data-id="${s.id}">✕</button>
-                                                                                            </div>`;
+                                                                                                                    <span>${s.label}</span>
+                                                                                                                    <button type="button" class="text-red-500 delete-history-btn" data-id="${s.id}">✕</button>
+                                                                                                                </div>`;
                             });
                         }
                         $('#historyList').html(html);

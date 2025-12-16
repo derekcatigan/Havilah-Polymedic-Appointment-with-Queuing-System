@@ -82,8 +82,11 @@ class ManageAccountController extends Controller
     public function edit($id)
     {
         $account = User::findOrFail($id);
-        return view('admin.edit-account', compact('account'));
+        $doctors = User::where('role', 'doctor')->with('doctor')->get();
+
+        return view('admin.edit-account', compact('account', 'doctors'));
     }
+
 
     public function update(Request $request, $id)
     {
@@ -96,7 +99,9 @@ class ManageAccountController extends Controller
             'address'   => 'required|string|max:255',
             'role'      => 'required|string',
             'status'    => 'required|string',
-            'password'  => 'nullable|min:6',
+            'password'        => 'nullable|min:6',
+            'doctor_user_id'  => 'nullable|exists:users,id',
+
         ]);
 
         $exists = User::where('name', Str::title($validated['name']))
@@ -110,6 +115,12 @@ class ManageAccountController extends Controller
             ], 422);
         }
 
+        if ($validated['role'] === 'staff' && empty($validated['doctor_user_id'])) {
+            return response()->json([
+                'message' => 'Please assign a doctor for the staff.'
+            ], 422);
+        }
+
         try {
             DB::beginTransaction();
 
@@ -120,10 +131,14 @@ class ManageAccountController extends Controller
                 'address'         => Str::title($validated['address']),
                 'role'            => $validated['role'],
                 'status'          => $validated['status'],
+                'doctor_user_id'  => $validated['role'] === 'staff'
+                    ? $validated['doctor_user_id']
+                    : null,
                 'password'        => !empty($validated['password'])
                     ? Hash::make($validated['password'])
                     : $account->password,
             ]);
+
 
             DB::commit();
             return response()->json([

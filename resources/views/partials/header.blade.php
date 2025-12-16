@@ -14,7 +14,7 @@
         <a href="{{ route('home.queue') }}" class="{{ Request::routeIs('home.queue') ? 'active' : '' }}">Queue</a>
         <a href="{{ route('patient.appointments') }}"
             class="{{ Request::routeIs('patient.appointments') ? 'active' : '' }}">My Appointments</a>
-        <a href="{{ route('about.page') }}">About Us</a>
+        <a href="{{ route('about.page') }}" class="{{ Request::routeIs('about.page') ? 'active' : '' }}">About Us</a>
     </div>
 
 

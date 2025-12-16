@@ -44,7 +44,15 @@ class MyScheduleController extends Controller
             'doctor_user_id' => Rule::requiredIf($role !== 'doctor'),
         ]);
 
-        $doctorId = ($role === 'doctor') ? $user->id : $request->input('doctor_user_id');
+        if ($role === 'doctor') {
+            $doctorId = $user->id;
+        } elseif ($role === 'staff') {
+            $doctorId = $user->doctor_user_id;
+        } else {
+            // admin
+            $doctorId = $request->input('doctor_user_id');
+        }
+
 
         // fixed times
         $AM_start = '08:00:00';

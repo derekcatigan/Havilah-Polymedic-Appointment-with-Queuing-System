@@ -1,90 +1,144 @@
-{{-- resources\views\admin\create-doctor.blade.php --}}
+{{-- resources/views/admin/create-doctor.blade.php --}}
 @extends('layout.layout')
 
 @section('content')
-    <div class="w-full p-5 flex items-center gap-3">
-        <a href="{{ route('admin.manage.doctor') }}" class="btn btn-sm btn-primary">Back</a>
-        <h3 class="text-xl font-semibold">Add Doctor</h3>
+
+    {{-- Page Header --}}
+    <div class="flex items-center justify-between px-6 py-4 border-b bg-white">
+        <div class="flex items-center gap-3">
+            <a href="{{ route('admin.manage.doctor') }}" class="btn btn-sm btn-outline">
+                ← Back
+            </a>
+            <h1 class="text-xl font-semibold text-gray-800">Add Doctor</h1>
+        </div>
     </div>
-    <div class="w-full flex justify-center">
-        <div class="w-[500px] bg-white border border-gray-300 p-5 rounded-md shadow-lg">
-            <form id="createDoctorForm" method="POST" autocomplete="off" enctype="multipart/form-data">
-                @csrf
-                <div class="w-full bg-cyan-200 p-3 border border-cyan-400 rounded-lg mb-3 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                        stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
-                    </svg>
-                    <p class="text-sm">Please double check the information before submitting.</p>
-                </div>
-                <div class="w-full">
-                    <fieldset class="fieldset">
-                        <legend class="fieldset-legend">Profile Picture</legend>
-                        <input type="file" id="profile_picture" name="profile_picture"
-                            class="file-input file-input-bordered file-input-sm w-full" accept="image/*" />
-                    </fieldset>
-                </div>
-                <div class="w-full">
-                    <fieldset class="fieldset">
-                        <legend class="fieldset-legend">Full name</legend>
-                        <input type="text" id="name" name="name" class="w-full input input-sm" placeholder="" />
-                    </fieldset>
-                </div>
-                <div class="w-full">
-                    <fieldset class="fieldset">
-                        <legend class="fieldset-legend">Email address</legend>
-                        <input type="email" id="email" name="email" class="w-full input input-sm" placeholder="" />
-                    </fieldset>
-                </div>
-                <div class="w-full">
-                    <fieldset class="fieldset">
-                        <legend class="fieldset-legend">Contact number</legend>
-                        <input type="tel" id="phone" name="phone" class="w-full tabular-nums input input-sm"
-                            pattern="[0-9]*" minlength="11" maxlength="11" title="Must be 11 digits" />
-                    </fieldset>
-                </div>
-                <div class="w-full">
-                    <fieldset class="fieldset">
-                        <legend class="fieldset-legend">Address</legend>
-                        <input type="text" id="address" name="address" class="w-full input input-sm" />
-                    </fieldset>
+
+    {{-- Page Body --}}
+    <div class="min-h-screen bg-gray-50 py-10 px-4">
+        <div class="max-w-3xl mx-auto">
+
+            {{-- Card --}}
+            <div class="bg-white rounded-xl shadow border">
+
+                {{-- Card Header --}}
+                <div class="px-6 py-4 border-b">
+                    <h2 class="text-lg font-semibold text-gray-700">Doctor Information</h2>
+                    <p class="text-sm text-gray-500">
+                        Fill in the doctor’s details below.
+                    </p>
                 </div>
 
-                <div class="w-full">
-                    <fieldset class="fieldset">
-                        <legend class="fieldset-legend">Specialty</legend>
-                        <select name="specialty" id="specialty" class="w-full select select-sm">
-                            <option disabled selected>select a specialty</option>
-                            <option value="internal medicine - diabetes">Internal Medicine - Diabetes</option>
-                            <option value="obstetrics - gynecology and ultra sound">Obstetrics - Gynecology and
-                                Ultra Sound</option>
-                            <option value="internal medicine">Internal Medicine</option>
-                            <option value="eent">EENT</option>
-                            <option value="dental medicine">Dental Medicine</option>
-                        </select>
-                    </fieldset>
-                </div>
-                <div class="w-full">
-                    <fieldset class="fieldset">
-                        <legend class="fieldset-legend">Password</legend>
-                        <input type="password" id="password" name="password" class="w-full input input-sm"
-                            value="password" />
-                        <p class="label text-xs">Default password is "password" or you can customize password.</p>
-                    </fieldset>
-                    <div class="w-full flex items-center">
-                        <div class="flex items-center gap-1">
-                            <input type="checkbox" id="checkPass" class="checkbox checkbox-xs" />
-                            <label for="checkPass" class="label text-sm">Show password</label>
+                {{-- Card Body --}}
+                <form id="createDoctorForm" method="POST" enctype="multipart/form-data" autocomplete="off"
+                    class="p-6 space-y-6">
+
+                    @csrf
+
+                    {{-- Info Notice --}}
+                    <div class="flex items-start gap-3 bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="size-6 text-cyan-600" fill="none" viewBox="0 0 24 24"
+                            stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                        </svg>
+                        <p class="text-sm text-cyan-800">
+                            Please double-check the information before submitting.
+                        </p>
+                    </div>
+
+                    {{-- Profile Picture --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Profile Picture
+                        </label>
+
+                        <div class="flex items-center gap-4">
+                            <div class="avatar placeholder">
+                                <div class="w-24 rounded-full bg-gray-100 text-gray-400">
+                                    <span class="text-xl">DR</span>
+                                </div>
+                            </div>
+
+                            <input type="file" id="profile_picture" name="profile_picture"
+                                class="file-input file-input-bordered file-input-sm w-full" accept="image/*" />
                         </div>
                     </div>
-                </div>
 
-                <button type="submit" id="addBtn" class="btn btn-sm btn-block btn-primary mt-5">
-                    <span id="buttonText">Add doctor</span>
-                    <span id="spinner" class="loading loading-dots loading-sm hidden"></span>
-                </button>
-            </form>
+                    {{-- Grid Fields --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        {{-- Name --}}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                            <input type="text" id="name" name="name" class="input input-bordered input-sm w-full">
+                        </div>
+
+                        {{-- Email --}}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                            <input type="email" id="email" name="email" class="input input-bordered input-sm w-full">
+                        </div>
+
+                        {{-- Contact --}}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+                            <input type="tel" id="phone" name="phone"
+                                class="input input-bordered input-sm w-full tabular-nums" pattern="[0-9]*" minlength="11"
+                                maxlength="11" title="Must be 11 digits">
+                        </div>
+
+                        {{-- Address --}}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                            <input type="text" id="address" name="address" class="input input-bordered input-sm w-full">
+                        </div>
+
+                        {{-- Specialty --}}
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Specialty</label>
+                            <select name="specialty" id="specialty" class="select select-bordered select-sm w-full">
+                                <option disabled selected>Select a specialty</option>
+                                <option value="nephrologist">Nephrologist</option>
+                                <option value="general surgeon">General Surgeon</option>
+                                <option value="pediatrician">Pediatrician</option>
+                                <option value="internal medicine - diabetes">Internal Medicine - Diabetes</option>
+                                <option value="obstetrics - gynecology and ultra sound">
+                                    Obstetrics - Gynecology and Ultra Sound
+                                </option>
+                                <option value="internal medicine">Internal Medicine</option>
+                                <option value="eent">EENT</option>
+                                <option value="dental medicine">Dental Medicine</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    {{-- Password --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <input type="password" id="password" name="password" class="input input-bordered input-sm w-full"
+                            value="password">
+
+                        <p class="text-xs text-gray-500 mt-1">
+                            Default password is <strong>password</strong>. You may customize it.
+                        </p>
+
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="checkbox" id="checkPass" class="checkbox checkbox-xs">
+                            <label for="checkPass" class="text-sm">Show password</label>
+                        </div>
+                    </div>
+
+                    {{-- Submit --}}
+                    <div class="pt-4 border-t flex justify-end">
+                        <button type="submit" id="addBtn" class="btn btn-primary btn-sm px-6">
+                            <span id="buttonText">Add Doctor</span>
+                            <span id="spinner" class="loading loading-dots loading-sm hidden"></span>
+                        </button>
+                    </div>
+
+                </form>
+            </div>
         </div>
     </div>
 @endsection
@@ -92,10 +146,9 @@
 @section('script')
     <script>
         $(document).ready(function () {
-            $('#checkPass').change(function (e) {
-                e.preventDefault();
 
-                $('#password').attr('type', $(this).is(':checked') ? 'text' : 'password');
+            $('#checkPass').change(function () {
+                $('#password').attr('type', this.checked ? 'text' : 'password');
             });
 
             $('#createDoctorForm').on('submit', function (e) {
@@ -139,7 +192,6 @@
                                 text: errorText,
                                 position: 'top-right',
                             });
-                            return;
                         }
                     },
                     complete: function () {
