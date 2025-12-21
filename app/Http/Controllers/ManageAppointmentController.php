@@ -93,10 +93,31 @@ class ManageAppointmentController extends Controller
     {
         $this->authorizeStaffWithAppointment($appointment);
 
+        $appointmentTime = $appointment->starts_at;
+        $period = $appointmentTime->hour < 12 ? 'morning' : 'afternoon';
+
+        // Count confirmed appointments for this doctor in the same period
+        $confirmedCount = Appointment::where('doctor_user_id', $appointment->doctor_user_id)
+            ->whereDate('starts_at', today())
+            ->where('status', 'confirmed')
+            ->where(function ($q) use ($period) {
+                if ($period === 'morning') {
+                    $q->whereTime('starts_at', '<', '12:00:00');
+                } else {
+                    $q->whereTime('starts_at', '>=', '12:00:00');
+                }
+            })
+            ->count();
+
+        if ($confirmedCount >= 25) {
+            return back()->with('error', "Cannot confirm more than 25 appointments for the {$period}.");
+        }
+
         $appointment->update([
             'status' => 'confirmed',
         ]);
 
+        // Create queue if not exists
         if (!$appointment->queue) {
             $nextQueueNumber = $this->getNextQueueNumber($appointment->doctor_user_id);
 
@@ -112,6 +133,7 @@ class ManageAppointmentController extends Controller
             $queue = $appointment->queue;
         }
 
+        // Send email if not walk-in
         if (!str_ends_with($appointment->patient->email, '@walkin.local')) {
             Mail::to($appointment->patient->email)
                 ->send(new QueueStatusNotification($queue, 'Your appointment has been confirmed.'));
@@ -119,6 +141,7 @@ class ManageAppointmentController extends Controller
 
         return back()->with('success', 'Appointment confirmed and queue generated.');
     }
+
 
     public function cancel(Appointment $appointment)
     {

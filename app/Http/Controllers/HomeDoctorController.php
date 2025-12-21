@@ -25,26 +25,6 @@ class HomeDoctorController extends Controller
             ->distinct()
             ->pluck('specialty');
 
-        // Get the current patient's queue for today (if any)
-        // $patientQueue = Queue::where('patient_user_id', Auth::id())
-        //     ->whereDate('queue_date', today())
-        //     ->whereIn('queue_status', ['waiting', 'called', 'in_progress'])
-        //     ->latest()
-        //     ->first();
-
-        // Patient's doctor for today (if any)
-        // $patientDoctorId = $patientQueue ? $patientQueue->doctor_user_id : null;
-
-        // Get only the active queue for THAT doctor
-        // $currentQueues = Queue::with('doctor')
-        //     ->whereDate('queue_date', today())
-        //     ->whereIn('queue_status', ['called', 'in_progress'])
-        //     ->when($patientDoctorId, function ($q) use ($patientDoctorId) {
-        //         return $q->where('doctor_user_id', $patientDoctorId);
-        //     })
-        //     ->get()
-        //     ->groupBy('doctor_user_id');
-
         return view('home-doctor', compact('doctors', 'specialties', 'specialty'));
     }
 

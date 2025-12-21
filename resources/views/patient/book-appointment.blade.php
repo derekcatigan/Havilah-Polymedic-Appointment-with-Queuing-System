@@ -52,10 +52,6 @@
                                 <span id="cancelSpinner" class="loading loading-dots loading-sm hidden"></span>
                             </button>
                         </form>
-
-                        {{-- @elseif ($appointment && $appointment->status === 'confirmed') --}}
-                        {{-- Already booked --}}
-                        {{-- <button class="btn btn-block btn-sm btn-success mt-5" disabled>Booked</button> --}}
                     @else
                         {{-- Booking form --}}
                         @if ($users->doctor->status === 'available')
@@ -180,39 +176,35 @@
                     const buttonHtml = !disabled ? `<button type="button" class="select-date-btn btn btn-sm btn-outline w-full text-xs" data-date="${iso}">Select date</button>` : '';
 
                     const dayHtml = `
-                                <div class="min-h-[120px] relative p-3 rounded-lg border flex flex-col justify-between cursor-pointer transition ${cellClasses}"
-                                     data-date="${iso}" data-disabled="${disabled ? '1' : '0'}">
-                                    <div class="flex items-start justify-between">
-                                        <div class="text-sm font-semibold">${d}</div>
-                                        ${past ? '<div class="text-xs text-gray-400">Past</div>' : (!hasSchedule ? '<div class="text-xs text-red-500">No Schedule</div>' : '')}
-                                    </div>
+                                                        <div class="min-h-[120px] relative p-3 rounded-lg border flex flex-col justify-between cursor-pointer transition ${cellClasses}"
+                                                             data-date="${iso}" data-disabled="${disabled ? '1' : '0'}">
+                                                            <div class="flex items-start justify-between">
+                                                                <div class="text-sm font-semibold">${d}</div>
+                                                                ${past ? '<div class="text-xs text-gray-400">Past</div>' : (!hasSchedule ? '<div class="text-xs text-red-500">No Schedule</div>' : '')}
+                                                            </div>
 
-                                    <div class="mt-2">
-                                        <span class="text-xs font-medium status-label ${statusClassText}">${statusLabel}</span>
-                                    </div>
+                                                            <div class="mt-2">
+                                                                <span class="text-xs font-medium status-label ${statusClassText}">${statusLabel}</span>
+                                                            </div>
 
-                                    <div class="mt-3 text-center">
-                                        ${buttonHtml}
-                                    </div>
-                                </div>
-                            `;
+                                                            <div class="mt-3 text-center">
+                                                                ${buttonHtml}
+                                                            </div>
+                                                        </div>
+                                                    `;
                     $calendarEl.append(dayHtml);
                 }
             }
 
             // Load queue count for doctor+date and update UI
-            function loadQueueCount(doctorIdParam, dateIso) {
-                if (!doctorIdParam || !dateIso) {
-                    $queueCountLabel.text('0');
-                    return;
-                }
-
-                $.get('/queue/count', { doctor_id: doctorIdParam, date: dateIso })
+            function loadQueueCount(doctorIdParam, dateIso, slot = 'AM') {
+                $.get('/queue/count', {
+                    doctor_id: doctorIdParam,
+                    date: dateIso,
+                    slot: slot
+                })
                     .done(res => {
-                        $queueCountLabel.text(res.count ?? 0);
-                    })
-                    .fail(() => {
-                        $queueCountLabel.text('0');
+                        $('#queueCountLabel').text(res.count ?? 0);
                     });
             }
 
@@ -252,8 +244,16 @@
                 selectedDate = date;
                 $selectedSlotLabel.text(formatReadable(date));
 
-                // fetch active queue count for the selected date
-                loadQueueCount(doctorId, date);
+                // fetch active queue count
+                loadQueueCount(doctorId, date, 'AM');
+
+                // 🔽 Smooth scroll to Book button
+                setTimeout(() => {
+                    document.getElementById('bookBtn')?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }, 200);
             });
 
             // Booking submission

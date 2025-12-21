@@ -15,12 +15,16 @@ use function Symfony\Component\Clock\now;
 
 class AppointmentController extends Controller
 {
+    private function detectSlot(Carbon $time): string
+    {
+        return $time->format('H') < 12 ? 'AM' : 'PM';
+    }
+
     /**
      * Book a new appointment for a doctor.
      */
     public function book(Request $request, $doctorId)
     {
-        // Validate incoming request
         $validated = $request->validate([
             'reason'    => 'nullable|string|max:1000',
             'starts_at' => 'required|date_format:Y-m-d H:i',
@@ -30,36 +34,59 @@ class AppointmentController extends Controller
         $doctor = User::with('doctor')->findOrFail($doctorId);
         $patientId = Auth::id();
 
-        // Ensure doctor is accepting bookings
         if (!$doctor->doctor || $doctor->doctor->status !== 'available') {
             return response()->json([
-                'message' => 'This doctor is currently unavailable for booking.',
+                'message' => 'This doctor is currently unavailable.',
             ], 400);
         }
 
-        /**
-         * ====================================================
-         *  🔒 LIMIT RULE: A patient can only book 2 doctors
-         * ====================================================
-         */
+        // 🔒 LIMIT: max 2 doctors rule
         $alreadyBookedDoctors = Appointment::where('patient_user_id', $patientId)
             ->whereIn('status', ['pending', 'confirmed'])
             ->pluck('doctor_user_id')
             ->unique()
             ->toArray();
 
-        // If patient already booked 2 different doctors AND new doctor is not one of them
         if (count($alreadyBookedDoctors) >= 2 && !in_array($doctorId, $alreadyBookedDoctors)) {
             return response()->json([
                 'message' => 'You can only book a maximum of 2 different doctors.',
             ], 400);
         }
 
-        // Convert date to Manila timezone
+        // 🕘 Convert to Manila timezone
         $start = Carbon::createFromFormat('Y-m-d H:i', $validated['starts_at'], 'Asia/Manila');
         $end   = Carbon::createFromFormat('Y-m-d H:i', $validated['ends_at'], 'Asia/Manila');
 
-        // Store appointment
+        // ⛔ End-of-day limit
+        if ($start->hour >= 18) {
+            return response()->json([
+                'message' => 'You cannot book appointments after 6 PM.',
+            ], 400);
+        }
+
+        // 🔎 Detect slot
+        $slot = $this->detectSlot($start);
+
+        // ⛔ SLOT LIMIT CHECK
+        $slotCount = Appointment::where('doctor_user_id', $doctorId)
+            ->whereDate('starts_at', $start->toDateString())
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->where(function ($q) use ($slot) {
+                if ($slot === 'AM') {
+                    $q->whereTime('starts_at', '<', '12:00:00');
+                } else {
+                    $q->whereTime('starts_at', '>=', '12:00:00');
+                }
+            })
+            ->count();
+
+        if ($slotCount >= 25) {
+            return response()->json([
+                'message' => "Booking limit reached for {$slot}. Please choose another slot.",
+            ], 400);
+        }
+
+        // ✅ Create appointment
         $appointment = Appointment::create([
             'doctor_user_id'  => $doctor->id,
             'patient_user_id' => $patientId,
@@ -73,8 +100,6 @@ class AppointmentController extends Controller
             'appointment_id' => $appointment->id,
         ]);
     }
-
-
 
     /**
      * Cancel an appointment.
@@ -162,15 +187,21 @@ class AppointmentController extends Controller
         $request->validate([
             'doctor_id' => 'required|exists:users,id',
             'date'      => 'required|date',
+            'slot'      => 'nullable|in:AM,PM',
         ]);
 
-        $count = Appointment::where('doctor_user_id', $request->doctor_id)
+        $query = Appointment::where('doctor_user_id', $request->doctor_id)
             ->whereDate('starts_at', $request->date)
-            ->where('status', 'confirmed')
-            ->count();
+            ->where('status', 'confirmed');
+
+        if ($request->slot === 'AM') {
+            $query->whereTime('starts_at', '<', '12:00:00');
+        } elseif ($request->slot === 'PM') {
+            $query->whereTime('starts_at', '>=', '12:00:00');
+        }
 
         return response()->json([
-            'count' => $count
+            'count' => $query->count()
         ]);
     }
 }

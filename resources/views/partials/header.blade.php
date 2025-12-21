@@ -47,12 +47,12 @@
             </div>
         @else
             <div class="button-container">
-                <a href="{{ route('login') }}" class="btn btn-sm px-10 btn-primary text-white font-bold">Login</a>
+                <a href="{{ route('login') }}" class="btn btn-sm px-10 btn-primary text-white font-bold">Login/Signup</a>
             </div>
         @endif
     @else
         <div class="button-container">
-            <a href="{{ route('login') }}" class="btn btn-sm px-10 btn-primary text-white font-bold">Login</a>
+            <a href="{{ route('login') }}" class="btn btn-sm px-10 btn-primary text-white font-bold">Login/Signup</a>
         </div>
     @endauth
 </header>
