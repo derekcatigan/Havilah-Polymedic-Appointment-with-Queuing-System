@@ -163,7 +163,7 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $redirectTo = match ($user->role) {
-                UserRole::Admin => route('admin.manage.account'),
+                UserRole::Admin => route('admin.dashboard'),
                 UserRole::Doctor => route('doctor.appointment'),
                 UserRole::Staff => route('manage.appointment'),
                 default => route('personnel.panel'),

@@ -74,7 +74,7 @@
             {{-- Admin Links --}}
             @if (Auth::user()->role->value === 'admin')
                 {{-- Admin Dashboard Link --}}
-                {{-- <li class="list-items">
+                <li class="list-items">
                     <a href="{{ route('admin.dashboard') }}"
                         class="link-items text-sm {{ Request::routeIs('admin.dashboard') ? 'active' : '' }}">
                         <span>
@@ -86,7 +86,7 @@
                         </span>
                         Dashboard
                     </a>
-                </li> --}}
+                </li>
 
                 {{-- Admin Manage Account Link --}}
                 <li class="list-items">
@@ -330,6 +330,8 @@
 
 
     <script src="{{ asset('assets/js/jquery-3.7.1.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
         $(document).ready(function () {
             $('#sidebarToggle').click(function () {
