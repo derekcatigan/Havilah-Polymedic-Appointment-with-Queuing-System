@@ -57,76 +57,80 @@
                 </thead>
                 <tbody>
                     @forelse ($appointments as $index => $appointment)
-                        <tr>
-                            <td class="text-center">{{ $index + 1 }}</td>
-                            <td>
-                                <div class="flex items-center gap-2">
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 flex-shrink-0">
-                                        {{ strtoupper(substr($appointment->patient->name, 0, 1)) }}
-                                    </div>
-                                    <div class="flex flex-col">
-                                        {{ $appointment->patient->name }}
-                                        <span class="text-sm text-gray-500">
-                                            {{ $appointment->starts_at->format('M d, Y') }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge badge-info">
-                                    {{ ucfirst($appointment->status) }}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="flex items-center gap-2">
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 flex-shrink-0">
-                                        {{ strtoupper(substr($appointment->doctor->name, 0, 1)) }}
-                                    </div>
-                                    {{ $appointment->doctor->name }}
-                                </div>
-                            </td>
-                            <td>
-                                <span
-                                    class="badge {{ $appointment->doctor->doctor->status === 'available' ? 'badge-success' : 'badge-error' }}">
-                                    {{ ucfirst($appointment->doctor->doctor->status) }}
-                                </span>
-                            </td>
-                            <td class="text-center flex justify-center gap-2">
-                                <a href="{{ route('staff.appointments.show', $appointment->id) }}"
-                                    class="btn btn-sm btn-primary">Details</a>
+                                        <tr>
+                                            <td class="text-center">{{ $index + 1 }}</td>
+                                            <td>
+                                                <div class="flex items-center gap-2">
+                                                    <div
+                                                        class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 flex-shrink-0">
+                                                        {{ strtoupper(substr($appointment->patient->name, 0, 1)) }}
+                                                    </div>
+                                                    <div class="flex flex-col">
+                                                        {{ $appointment->patient->name }}
+                                                        <span class="text-sm text-gray-500">
+                                                            {{ $appointment->starts_at->format('M d, Y') }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-soft badge-sm
+                        {{ $appointment->status === 'confirmed' ? 'badge-success border border-green-500' : '' }}
+                        {{ $appointment->status === 'cancelled' ? 'badge-error border border-red-500' : '' }}
+                        {{ $appointment->status === 'pending' ? 'badge-warning border border-yellow-500' : '' }}
+                        ">
+                                                    {{ ucfirst($appointment->status) }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="flex items-center gap-2">
+                                                    <div
+                                                        class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 flex-shrink-0">
+                                                        {{ strtoupper(substr($appointment->doctor->name, 0, 1)) }}
+                                                    </div>
+                                                    {{ $appointment->doctor->name }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span
+                                                    class="badge {{ $appointment->doctor->doctor->status === 'available' ? 'badge-success' : 'badge-error' }}">
+                                                    {{ ucfirst($appointment->doctor->doctor->status) }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center flex justify-center gap-2">
+                                                <a href="{{ route('staff.appointments.show', $appointment->id) }}"
+                                                    class="btn btn-sm btn-primary">Details</a>
 
-                                <!-- Delete Button opens the modal -->
-                                <button type="button" class="btn btn-sm btn-error"
-                                    onclick="document.getElementById('deleteModal-{{ $appointment->id }}').showModal()">
-                                    Delete
-                                </button>
+                                                <!-- Delete Button opens the modal -->
+                                                <button type="button" class="btn btn-sm btn-error"
+                                                    onclick="document.getElementById('deleteModal-{{ $appointment->id }}').showModal()">
+                                                    Delete
+                                                </button>
 
-                                <!-- Modal -->
-                                <dialog id="deleteModal-{{ $appointment->id }}" class="modal">
-                                    <div class="modal-box">
-                                        <h3 class="font-bold text-lg">Confirm Deletion</h3>
-                                        <p class="py-4">Are you sure you want to delete the appointment for
-                                            <strong>{{ $appointment->patient->name }}</strong>?
-                                        </p>
-                                        <div class="modal-action">
-                                            <form method="dialog">
-                                                <!-- Close modal -->
-                                                <button class="btn">Cancel</button>
-                                            </form>
-                                            <!-- Delete form -->
-                                            <form action="{{ route('staff.appointments.destroy', $appointment->id) }}"
-                                                method="POST">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-error">Delete</button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </dialog>
-                            </td>
-                        </tr>
+                                                <!-- Modal -->
+                                                <dialog id="deleteModal-{{ $appointment->id }}" class="modal">
+                                                    <div class="modal-box">
+                                                        <h3 class="font-bold text-lg">Confirm Deletion</h3>
+                                                        <p class="py-4">Are you sure you want to delete the appointment for
+                                                            <strong>{{ $appointment->patient->name }}</strong>?
+                                                        </p>
+                                                        <div class="modal-action">
+                                                            <form method="dialog">
+                                                                <!-- Close modal -->
+                                                                <button class="btn">Cancel</button>
+                                                            </form>
+                                                            <!-- Delete form -->
+                                                            <form action="{{ route('staff.appointments.destroy', $appointment->id) }}"
+                                                                method="POST">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="btn btn-error">Delete</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </dialog>
+                                            </td>
+                                        </tr>
                     @empty
                         <tr>
                             <td colspan="6" class="text-center">No appointments found</td>

@@ -16,7 +16,6 @@ class StaffQueueController extends Controller
         $staff = Auth::user();
         $doctorId = $staff->doctor_user_id;
 
-        // Search filter only
         $search = $request->input('search');
 
         // MAIN QUEUE LIST
@@ -29,10 +28,12 @@ class StaffQueueController extends Controller
                     $patientQuery->where('name', 'like', "%{$search}%");
                 });
             })
+            // ⭐ Push skipped to the bottom but keep queue_number order
+            ->orderByRaw("CASE WHEN queue_status = 'skipped' THEN 1 ELSE 0 END ASC")
             ->orderBy('queue_number')
             ->get();
 
-        // CURRENT QUEUE (called / in progress TODAY)
+        // CURRENT QUEUE: first patient being served (called/in_progress)
         $currentQueue = Queue::with('patient')
             ->where('doctor_user_id', $doctorId)
             ->whereDate('queue_date', today())
@@ -42,7 +43,6 @@ class StaffQueueController extends Controller
 
         return view('staff.manage-queue', compact('queues', 'currentQueue', 'search'));
     }
-
 
     public function call(Queue $queue)
     {

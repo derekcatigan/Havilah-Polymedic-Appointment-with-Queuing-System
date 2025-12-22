@@ -20,12 +20,15 @@ class ManageAppointmentController extends Controller
 
         $appointments = Appointment::with(['patient', 'doctor'])
 
+            // ❌ Exclude cancelled appointments
+            ->where('status', '!=', 'cancelled')
+
             // Staff restriction (ALWAYS applied)
             ->when($user->role->value === 'staff', function ($query) use ($user) {
                 $query->where('doctor_user_id', $user->doctor_user_id);
             })
 
-            // Date filter (starts_at)
+            // Date filter
             ->whereDate('starts_at', $date)
 
             // Search filter
@@ -46,6 +49,7 @@ class ManageAppointmentController extends Controller
 
         return view('staff.manage-appointment', compact('appointments'));
     }
+
 
 
     public function show(Appointment $appointment)
