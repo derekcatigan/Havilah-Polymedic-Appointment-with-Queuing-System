@@ -9,7 +9,7 @@
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
                 <p class="text-sm text-gray-500">
-                    Overview & analytics for {{ now()->format('F Y') }}
+                    Overview & Analytics
                 </p>
             </div>
         </div>
